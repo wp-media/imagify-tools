@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<ruleset name="Imagify Tools">
+	<description>A WordPress plugin helping debug in Imagify.</description>
+
+	<arg name="extensions" value="php"/>
+	<!--<arg value="s"/>-->
+
+	<file>.</file>
+	<exclude-pattern>tests.php</exclude-pattern>
+
+	<rule ref="WordPress">
+		<!-- https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/ -->
+		<exclude name="Squiz.Commenting.FileComment.Missing"/>
+		<exclude name="Squiz.Commenting.FileComment.MissingPackageTag"/>
+		<exclude name="Squiz.ControlStructures.ControlSignature.SpaceAfterCloseBrace"/>
+		<exclude name="Squiz.PHP.CommentedOutCode.Found"/>
+		<exclude name="WordPress.Arrays.ArrayDeclarationSpacing.AssociativeKeyFound"/>
+		<exclude name="WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting"/>
+		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_error_reporting"/>
+		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_ini_set"/>
+		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize"/>
+		<exclude name="WordPress.VIP.DirectDatabaseQuery.DirectQuery"/>
+		<exclude name="WordPress.VIP.DirectDatabaseQuery.NoCaching"/>
+		<exclude name="WordPress.VIP.DirectDatabaseQuery.SchemaChange"/>
+		<exclude name="WordPress.VIP.PostsPerPage.posts_per_page_posts_per_page"/>
+		<exclude name="WordPress.VIP.RestrictedFunctions.get_posts_get_posts"/>
+		<exclude name="WordPress.VIP.RestrictedFunctions.switch_to_blog_switch_to_blog"/>
+		<exclude name="WordPress.VIP.RestrictedVariables.cache_constraints___COOKIE"/>
+		<exclude name="WordPress.VIP.RestrictedVariables.user_meta__wpdb__users"/>
+		<exclude name="WordPress.VIP.SuperGlobalInputUsage.AccessDetected"/>
+		<exclude name="WordPress.WP.CapitalPDangit.Misspelled"/>
+		<exclude name="WordPress.XSS.EscapeOutput"/>
+	</rule>
+
+	<rule ref="WordPress.CSRF.NonceVerification">
+		<properties>
+			<property name="customNonceVerificationFunctions" value="check_nonce_and_user" type="array"/>
+		</properties>
+	</rule>
+</ruleset>

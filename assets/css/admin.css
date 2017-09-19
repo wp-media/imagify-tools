@@ -1,0 +1,185 @@
+@charset "UTF-8";
+
+/**
+ * ==== TABLE OF COLORS ===
+ *
+ * Yellow		: #F1C40F;
+ * YellowDark	: #F7AB13;
+ * Red			: #F2295E;
+ * RedDark		: #CB234F;
+ * Green		: #2BCDC1;
+ * GreenDark	: #26B3A9;
+ * Dark			: #222831;
+ * GrayLight	: #F2F2F6;
+ * GrayMedium	: #5A626F;
+ * GrayDark		: #393E46;
+ *
+ */
+
+/**
+ * === Generics
+ */
+[class^="imgt-"],
+[class*=" imgt-"] {
+	box-sizing: border-box;
+}
+[class^="imgt-"] a,
+[class*=" imgt-"] a {
+	color: #26B3A9;
+	font-weight: bold;
+}
+/* On text selection */
+[class^="imgt-"] ::selection {
+	background: #26B3A9;
+	color: #FFF;
+}
+[class^="imgt-"] ::-moz-selection {
+	background: #26B3A9;
+	color: #FFF;
+}
+
+/* Animations */
+[class^="imgt-"] a,
+[class^="imgt-"] button,
+[class^="imgt-"] input,
+[class^="imgt-"] .text {
+	transition: all .275s;
+	outline: none;
+	box-shadow: none;
+}
+
+/**
+ * === Buttons
+ */
+button.imgt-virgin {
+	padding: 0;
+	border: 0;
+	background: transparent;
+	height: auto;
+	box-shadow: none;
+	text-shadow: none;
+}
+.imgt-button.imgt-button,
+.imgt-button-primary.imgt-button-primary,
+.imgt-button-secondary.imgt-button-secondary,
+.imgt-button-tertiary.imgt-button-tertiary {
+	display: inline-block;
+	height: auto; /* Yeah 'cause WP locked it */
+	margin: .1em 0;
+	padding: 7px 20px 8px;
+	border: 0;
+	font-size: 14px;
+	line-height: 1.5;
+	font-weight: bold;
+	text-transform: uppercase;
+	color: #FFF;
+	text-decoration: none;
+	text-shadow: none;
+	background: #5A626F;
+	box-shadow: none;
+	white-space: nowrap;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	-webkit-appearance: none;
+	cursor: pointer;
+}
+.imgt-button.imgt-button:hover,
+.imgt-button.imgt-button:focus,
+.imgt-button-primary.imgt-button-primary:hover,
+.imgt-button-primary.imgt-button-primary:focus,
+.imgt-button-secondary.imgt-button-secondary:hover,
+.imgt-button-secondary.imgt-button-secondary:focus,
+.imgt-button-tertiary.imgt-button-tertiary:hover,
+.imgt-button-tertiary.imgt-button-tertiary:focus {
+	color: #FFF;
+	background: #393E46;
+}
+[class^="imgt-button-"]::-moz-focus-inner,
+.imgt-button::-moz-focus-inner {
+	padding: 0;
+	border: 0
+}
+.imgt-button .text,
+[class^="imgt-button-"] .text {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+/* Disabled */
+[class*="imgt-button"].disabled,
+[class*="imgt-button"]:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+/* Not important */
+.imgt-button.imgt-button.light {
+	background: #ADB1B7;
+}
+.imgt-button.imgt-button.light:hover,
+.imgt-button.imgt-button.light:focus {
+	background: #393E46;
+}
+
+/* Button Colors */
+.imgt-button-primary.imgt-button-primary {
+	background: #2BCDC1;
+}
+.imgt-button-primary.imgt-button-primary:hover,
+.imgt-button-primary.imgt-button-primary:focus {
+	background: #26B3A9;
+}
+.imgt-button-secondary.imgt-button-secondary {
+	background: #F2295E;
+}
+.imgt-button-secondary.imgt-button-secondary:hover,
+.imgt-button-secondary.imgt-button-secondary:focus {
+	background: #CB234F;
+}
+.imgt-button-tertiary.imgt-button-tertiary {
+	background: #F19B12;
+}
+.imgt-button-tertiary.imgt-button-tertiary:hover,
+.imgt-button-tertiary.imgt-button-tertiary:focus {
+	background: #F7AB13;
+}
+
+/* Buttons sizes */
+.imgt-button-mini.imgt-button-mini {
+	font-size: 11px;
+	padding: 2px 10px 3px;
+	letter-spacing: 0.125em;
+}
+.imgt-button-big.imgt-button-big {
+	font-size: 18px;
+}
+
+/**
+ * === Flexbox
+ */
+.imgt-flex,
+.imgt-flex-spaced {
+	position: relative;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: row;
+	-ms-flex-direction: row;
+	flex-direction: row;
+	-webkit-box-align: center;
+	-webkit-align-items: center;
+	-ms-flex-align: center;
+	-ms-grid-row-align: center;
+	align-items: center;
+}
+.imgt-flex > * {
+	-webkit-box-flex: 1;
+	-webkit-flex-grow: 1;
+	-ms-flex-positive: 1;
+	flex-grow: 1;
+}
+.imgt-flex > * {
+	margin: 0;
+}
