@@ -74,7 +74,9 @@ class IMGT_Attachments_Metas {
 	 * @author Grégory Viguier
 	 */
 	public function init() {
-		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), -10 );
+		if ( current_user_can( imagify_tools_get_capacity() ) ) {
+			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), -10 );
+		}
 	}
 
 	/**
