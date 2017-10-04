@@ -39,16 +39,12 @@ function imagify_tools_is_active_for_network() {
  * Get user capacity to operate Imagify Tools.
  *
  * @since  1.0
+ * @since  1.0.1 Removed $force_mono parameter.
  * @author Grégory Viguier
  *
- * @param  bool $force_mono Force capacity for mono-site.
  * @return string
  */
-function imagify_tools_get_capacity( $force_mono = false ) {
-	if ( $force_mono ) {
-		return 'manage_options';
-	}
-
+function imagify_tools_get_capacity() {
 	return imagify_tools_is_active_for_network() ? 'manage_network_options' : 'manage_options';
 }
 
