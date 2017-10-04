@@ -144,7 +144,9 @@ class IMGT_Admin_Pages {
 			}
 		}
 
-		$submenu[ self::MAIN_PAGE_SLUG ][0][0] = __( 'Infos', 'imagify-tools' ); // WPCS: override ok.
+		if ( ! empty( $submenu[ self::MAIN_PAGE_SLUG ] ) ) {
+			$submenu[ self::MAIN_PAGE_SLUG ][0][0] = __( 'Infos', 'imagify-tools' ); // WPCS: override ok.
+		}
 	}
 
 	/**
