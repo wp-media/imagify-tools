@@ -225,7 +225,7 @@ class IMGT_Admin_View {
 
 		printf( '<%1$s>%2$s</%1$s>', self::get_heading_tag(), __( 'Tests area', 'imagify-tools' ) );
 
-		echo preg_match( '@<pre[\s>]@', $tests ) === false ? '<pre>' . esc_html( $tests ) . '</pre>' : $tests;
+		echo preg_match( '@<pre[\s>]@', $tests ) ? $tests : '<pre>' . esc_html( $tests ) . '</pre>';
 
 		echo '</div>';
 
