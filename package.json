@@ -1,7 +1,7 @@
 {
   "name": "imagify-tools",
   "description": "A WordPress plugin helping debug in Imagify.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "GPL-2.0",
   "private": true,
   "author": {
