@@ -265,7 +265,7 @@ class IMGT_Admin_Model_Main {
 					'value'     => PHP_VERSION,
 				),
 				array(
-					/* translators: 1 and 2 are constant names value. */
+					/* translators: 1 and 2 are constant names. */
 					'label'     => sprintf( __( 'Memory Limit (%1$s value / %2$s value / real value)', 'imagify-tools' ), '<code>WP_MEMORY_LIMIT</code>', '<code>WP_MAX_MEMORY_LIMIT</code>' ),
 					'value'     => WP_MEMORY_LIMIT . ' / ' . WP_MAX_MEMORY_LIMIT . ' / ' . @ini_get( 'memory_limit' ),
 				),
