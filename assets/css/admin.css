@@ -5,14 +5,16 @@
  *
  * Yellow		: #F1C40F;
  * YellowDark	: #F7AB13;
- * Red			: #F2295E;
- * RedDark		: #CB234F;
- * Green		: #2BCDC1;
- * GreenDark	: #26B3A9;
- * Dark			: #222831;
- * GrayLight	: #F2F2F6;
- * GrayMedium	: #5A626F;
- * GrayDark		: #393E46;
+ * Red			: #DF3883;#
+ * RedDark		: #C51162;#
+ * Blue         : #40B1D0;#
+ * BlueDark     : #338EA6;#
+ * Green		: #8BC34A;#
+ * GreenDark	: #6F9C3B;#
+ * Dark			: #1F2332;#
+ * GrayLight	: #F2F5F7;#
+ * GrayMedium	: #65727C;#
+ * GrayDark		: #2E3243;#
  *
  */
 
@@ -25,16 +27,16 @@
 }
 [class^="imgt-"] a,
 [class*=" imgt-"] a {
-	color: #26B3A9;
+	color: #338EA6;
 	font-weight: bold;
 }
 /* On text selection */
 [class^="imgt-"] ::selection {
-	background: #26B3A9;
+	background: #338EA6;
 	color: #FFF;
 }
 [class^="imgt-"] ::-moz-selection {
-	background: #26B3A9;
+	background: #338EA6;
 	color: #FFF;
 }
 
@@ -75,7 +77,7 @@ button.imgt-virgin {
 	color: #FFF;
 	text-decoration: none;
 	text-shadow: none;
-	background: #5A626F;
+	background: #65727C;
 	box-shadow: none;
 	white-space: nowrap;
 	-webkit-border-radius: 3px;
@@ -92,7 +94,7 @@ button.imgt-virgin {
 .imgt-button-tertiary.imgt-button-tertiary:hover,
 .imgt-button-tertiary.imgt-button-tertiary:focus {
 	color: #FFF;
-	background: #393E46;
+	background: #2E3243;
 }
 [class^="imgt-button-"]::-moz-focus-inner,
 .imgt-button::-moz-focus-inner {
@@ -117,23 +119,23 @@ button.imgt-virgin {
 }
 .imgt-button.imgt-button.light:hover,
 .imgt-button.imgt-button.light:focus {
-	background: #393E46;
+	background: #2E3243;
 }
 
 /* Button Colors */
 .imgt-button-primary.imgt-button-primary {
-	background: #2BCDC1;
+	background: #40B1D0;
 }
 .imgt-button-primary.imgt-button-primary:hover,
 .imgt-button-primary.imgt-button-primary:focus {
-	background: #26B3A9;
+	background: #338EA6;
 }
 .imgt-button-secondary.imgt-button-secondary {
-	background: #F2295E;
+	background: #DF3883;
 }
 .imgt-button-secondary.imgt-button-secondary:hover,
 .imgt-button-secondary.imgt-button-secondary:focus {
-	background: #CB234F;
+	background: #C51162;
 }
 .imgt-button-tertiary.imgt-button-tertiary {
 	background: #F19B12;

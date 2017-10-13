@@ -6,7 +6,7 @@
 
 /* Header hacking mode */
 .imgt-logs-list [id="posts-filter"] {
-	background: #393E46;
+	background: #2E3243;
 }
 .imgt-logs-list .tablenav {
 	height: auto;
@@ -23,7 +23,7 @@
 	font-size: 12px;
 	font-weight: 600;
 	color: #FFF;
-	background: #393e46;
+	background: #2E3243;
 	border-radius: 2px;
 }
 .imgt-logs-list .bulkactions option {
@@ -38,13 +38,13 @@
 	font-size: 11px;
 	font-weight: 600;
 	color: #FFF;
-	background: #5A626F;
+	background: #65727C;
 	box-shadow: none;
 }
 .imgt-logs-list .bulkactions .button:hover,
 .imgt-logs-list .bulkactions .button:focus {
 	background: #FFF;
-	color: #5A626F;
+	color: #65727C;
 }
 .imgt-quick-actions .imgt-button {
 	padding: 6px 18px 7px;
@@ -67,13 +67,13 @@
 }
 .imgt-logs-list .displaying-num {
 	margin: 0 15px 0 0;
-	color: #2BCDC1;
+	color: #40B1D0;
 	vertical-align: -1px;
 }
 .imgt-logs-list .tablenav-pages .current-page {
 	padding: 3px 0;
 	font-size: 12px;
-	background: #5A626F;
+	background: #65727C;
 	color: #FFF;
 	border: 0;
 	border-radius: 3px;
@@ -91,7 +91,7 @@
 /* Cols details */
 .imgt-logs-list .manage-column,
 .imgt-logs-list .manage-column a {
-	color: #5A626F;
+	color: #65727C;
 	font-weight: 600;
 }
 .imgt-logs-list .striped > tbody > *:nth-child(2n+1) {
@@ -124,7 +124,7 @@
 }
 .imgt-logs-list .page-title a {
 	font-weight: 600;
-	color: #222831;
+	color: #1F2332;
 }
 .imgt-logs-list .page-title code {
 	display: block;
@@ -135,10 +135,10 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	background: #ECF0F1;
-	color: #5A626F;
+	color: #65727C;
 }
 .current-log .page-title code {
-	background: #222831;
+	background: #1F2332;
 	color: #FFF;
 }
 .imgt-logs-list .check-column .label-text {
@@ -184,7 +184,7 @@
 	font-size: 1.2em;
 }
 .imgt-log-content-header .imgt-flex + .imgt-flex {
-	border-top: 1px solid #2BCDC1;
+	border-top: 1px solid #40B1D0;
 }
 .imgt-log-content-header .imgt-flex:first-child {
 	padding-bottom: 15px;
@@ -194,7 +194,7 @@
 }
 .imgt-log-content-header code,
 .imgt-log-content-message pre {
-	background: #222831;
+	background: #1F2332;
 	color: #FFF;
 }
 .imgt-log-content-header a {
@@ -211,7 +211,7 @@
 /* Syntax highlight */
 /* keywords */
 .imgt-code-color-007700 {
-	color: #F2295E;
+	color: #DF3883;
 }
 /* Values: number */
 .imgt-code-color-0000BB {
