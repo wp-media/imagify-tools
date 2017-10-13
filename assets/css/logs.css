@@ -10,12 +10,15 @@
 }
 .imgt-logs-list .tablenav {
 	height: auto;
-	padding: 6px 0;
+	padding: 8px 0 12px;
 	margin: 0;
 }
 .imgt-logs-list .tablenav > div {
 	padding: 0 10px;
 	margin: 0;
+}
+.imgt-logs-list .tablenav .tablenav-pages {
+	padding-right: 15px;
 }
 .imgt-logs-list .bulkactions select {
 	padding: 4px 4px 4px 5px;
@@ -80,7 +83,8 @@
 }
 .imgt-current-time {
 	margin-left: 1em;
-	color: #a0a5aa;
+	font-size: .75rem;
+	color: rgba(255,255,255,.7);
 }
 
 /* Table */
