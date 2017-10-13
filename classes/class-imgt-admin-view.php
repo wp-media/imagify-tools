@@ -146,6 +146,11 @@ class IMGT_Admin_View {
 			return $this->view->render_title();
 		}
 
+		if ( isset( $_GET['page'] ) && 'imgt-logs' === $_GET['page'] ) {
+			// Current time.
+			$title .= '<span class="imgt-current-time">' . mysql2date( __( '\<\b\>Y/m/d\<\/\b\> g:i:s a', 'imagify-tools' ), current_time( 'mysql' ), true ) . '</span>';
+		}
+
 		// Display an uninstall button.
 		$uninstall_url = IMGT_Admin_Post::get_action( 'uninstall' );
 		$uninstall_url = wp_nonce_url( admin_url( 'admin-post.php?action=' . $uninstall_url ), $uninstall_url );
