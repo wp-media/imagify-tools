@@ -178,3 +178,18 @@ button.imgt-virgin {
 .imgt-flex > * {
 	margin: 0;
 }
+.imgt-wrap pre {
+	width: 100%;
+	margin: 0;
+	overflow-x: auto;
+}
+.imgt-wrap tr + tr th,
+.imgt-wrap tr + tr td {
+	border-top: 1px solid #e5e5e5;
+}
+.imgt-wrap .row-error th,
+.imgt-wrap .row-error td {
+	color: #fff;
+	font-weight: bold;
+	background: #C51162;
+}

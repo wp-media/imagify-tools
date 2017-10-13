@@ -52,31 +52,13 @@ class IMGT_Admin_View_Main extends IMGT_Admin_View {
 	/**
 	 * Print some CSS.
 	 *
+	 * @since  1.0.1 Emptied by Geoffrey :p
 	 * @since  1.0
 	 * @author Grégory Viguier
 	 */
 	public function print_styles() {
 		?>
-		<style>
-		.imgt-wrap .row-group-title th {
-			color: #fff;
-			background-color: #23282d;
-		}
-		.imgt-wrap tr + tr th,
-		.imgt-wrap tr + tr td {
-			border-top: 1px solid #e5e5e5;
-		}
-		.imgt-wrap pre {
-			width: 100%;
-			margin: 0;
-			overflow-x: auto;
-		}
-		.imgt-wrap .row-error th,
-		.imgt-wrap .row-error td {
-			color: #fff;
-			background: red;
-		}
-		</style>
+		<style></style>
 		<?php
 	}
 }
