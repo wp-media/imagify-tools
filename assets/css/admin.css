@@ -137,13 +137,6 @@ button.imgt-virgin {
 .imgt-button-secondary.imgt-button-secondary:focus {
 	background: #C51162;
 }
-.imgt-button-tertiary.imgt-button-tertiary {
-	background: #F19B12;
-}
-.imgt-button-tertiary.imgt-button-tertiary:hover,
-.imgt-button-tertiary.imgt-button-tertiary:focus {
-	background: #F7AB13;
-}
 
 /* Buttons sizes */
 .imgt-button-mini.imgt-button-mini {
