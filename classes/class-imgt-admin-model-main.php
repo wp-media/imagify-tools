@@ -415,7 +415,7 @@ class IMGT_Admin_Model_Main {
 		}
 
 		/* translators: %d is a number of minutes. */
-		return $link .= ' (' . sprintf( _n( 'cache cleared in less than %d minute', 'cache cleared in less than %d minutes', $time_diff, 'imagify-tools' ), $time_diff ) . ')';
+		return $link .= ' <span class="imgt-small-info">(' . sprintf( _n( 'cache cleared in less than %d minute', 'cache cleared in less than %d minutes', $time_diff, 'imagify-tools' ), $time_diff ) . ')</span>';
 	}
 
 	/**
@@ -491,7 +491,7 @@ class IMGT_Admin_Model_Main {
 		}
 
 		/* translators: %d is a number of minutes. */
-		return $link .= ' (' . sprintf( _n( 'cache cleared in less than %d minute', 'cache cleared in less than %d minutes', $time_diff, 'imagify-tools' ), $time_diff ) . ')';
+		return $link .= ' <span class="imgt-small-info">(' . sprintf( _n( 'cache cleared in less than %d minute', 'cache cleared in less than %d minutes', $time_diff, 'imagify-tools' ), $time_diff ) . ')</span>';
 	}
 
 	/**
