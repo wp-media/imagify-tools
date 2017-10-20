@@ -201,6 +201,10 @@
 	background: #1F2332;
 	color: #FFF;
 }
+.imgt-log-content-message.imgt-log-content-message code {
+    background: none;
+    color: #FFF;
+}
 .imgt-log-content-header a {
 	text-decoration: none;
 }
