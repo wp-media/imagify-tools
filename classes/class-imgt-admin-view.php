@@ -15,7 +15,7 @@ class IMGT_Admin_View {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * Template file.
@@ -139,23 +139,15 @@ class IMGT_Admin_View {
 	 *
 	 * @return object This class instance.
 	 */
-	final public function render_title() {
+	public function render_title() {
 		global $title;
 
 		if ( $this->view ) {
 			return $this->view->render_title();
 		}
 
-		if ( isset( $_GET['page'] ) && 'imgt-logs' === $_GET['page'] ) {
-			// Current time.
-			$title .= '<span class="imgt-current-time">' . mysql2date( __( '\<\b\>Y/m/d\<\/\b\> g:i:s a', 'imagify-tools' ), current_time( 'mysql' ), true ) . '</span>';
-		}
-
 		// Display an uninstall button.
-		$uninstall_url = IMGT_Admin_Post::get_action( 'uninstall' );
-		$uninstall_url = wp_nonce_url( admin_url( 'admin-post.php?action=' . $uninstall_url ), $uninstall_url );
-
-		echo '<a class="imgt-button imgt-button-secondary imgt-button-uninstall alignright" href="' . esc_url( $uninstall_url ) . '">' . __( 'Uninstall', 'imagify-tools' ) . '</a>';
+		echo $this->get_uninstall_button();
 
 		printf( '<%1$s class="imgt-page-title">%2$s</%1$s>', self::get_heading_tag(), $title );
 
@@ -263,6 +255,26 @@ class IMGT_Admin_View {
 		echo ' lang="en-US"' . ( is_rtl() ? ' dir="ltr"' : '' );
 
 		return $this;
+	}
+
+	/**
+	 * Get the HTML markup for the plugin uninstall button.
+	 *
+	 * @since  1.0.1
+	 * @author Grégory Viguier
+	 *
+	 * @param  string $template HTML to use for the link.
+	 * @return string
+	 */
+	final public function get_uninstall_button( $template = false ) {
+		$uninstall_url = IMGT_Admin_Post::get_action( 'uninstall' );
+		$uninstall_url = wp_nonce_url( admin_url( 'admin-post.php?action=' . $uninstall_url ), $uninstall_url );
+
+		if ( ! $template ) {
+			$template = '<a class="imgt-button imgt-button-secondary imgt-button-uninstall alignright" href="%s">%s</a>';
+		}
+
+		return sprintf( $template, esc_url( $uninstall_url ), __( 'Uninstall', 'imagify-tools' ) );
 	}
 
 	/**

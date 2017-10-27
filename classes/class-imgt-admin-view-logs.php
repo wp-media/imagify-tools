@@ -16,7 +16,7 @@ class IMGT_Admin_View_Logs extends IMGT_Admin_View {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * Template file.
@@ -108,6 +108,31 @@ class IMGT_Admin_View_Logs extends IMGT_Admin_View {
 
 		wp_enqueue_style( 'imgt-admin', $url . 'css/admin' . $min . '.css', array(), $ver );
 		wp_enqueue_style( 'imgt-logs', $url . 'css/logs' . $min . '.css', array( 'imgt-admin' ), $ver );
+	}
+
+	/**
+	 * Print the page title.
+	 *
+	 * @since  1.0.1
+	 * @author Grégory Viguier
+	 *
+	 * @return object This class instance.
+	 */
+	public function render_title() {
+		global $title;
+
+		// Current time.
+		$page_title = $title . '<span class="imgt-current-time">' . mysql2date( __( '\<\b\>Y/m/d\<\/\b\> g:i:s a', 'imagify-tools' ), current_time( 'mysql' ), true ) . '</span>';
+
+		// Display an uninstall button.
+		echo $this->get_uninstall_button();
+
+		printf( '<%1$s class="imgt-page-title">%2$s</%1$s>', self::get_heading_tag(), $page_title );
+
+		// Messages.
+		settings_errors();
+
+		return $this;
 	}
 
 	/**
