@@ -15,7 +15,7 @@ class IMGT_Admin_View_Main extends IMGT_Admin_View {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * Template file.
@@ -32,7 +32,6 @@ class IMGT_Admin_View_Main extends IMGT_Admin_View {
 	 */
 	public function init() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_styles' ) );
-		add_action( 'admin_print_styles',    array( $this, 'print_styles' ) );
 	}
 
 	/**
@@ -47,18 +46,5 @@ class IMGT_Admin_View_Main extends IMGT_Admin_View {
 		$ver = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? time() : IMAGIFY_TOOLS_VERSION;
 
 		wp_enqueue_style( 'imgt-admin', $url . 'css/admin' . $min . '.css', array(), $ver );
-	}
-
-	/**
-	 * Print some CSS.
-	 *
-	 * @since  1.0.1 Emptied by Geoffrey :p
-	 * @since  1.0
-	 * @author Grégory Viguier
-	 */
-	public function print_styles() {
-		?>
-		<style></style>
-		<?php
 	}
 }
