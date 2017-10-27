@@ -285,7 +285,7 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 						<?php _e( 'Delete All', 'imagify-tools' ); ?>
 					</span>
 				</a>
-				<?php }	?>
+				<?php } ?>
 		</div>
 		<?php
 		/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
