@@ -10,11 +10,18 @@ defined( 'ABSPATH' ) || die( 'Cheatin\' uh?' );
 			<th scope="col"><?php _e( 'More info', 'imagify-tools' ); ?></th>
 		</tr>
 	</thead>
+	<tfoot>
+		<tr>
+			<th scope="col"><?php _e( 'Test', 'imagify-tools' ); ?></th>
+			<th scope="col"><?php _e( 'Current value', 'imagify-tools' ); ?></th>
+			<th scope="col"><?php _e( 'More info', 'imagify-tools' ); ?></th>
+		</tr>
+	</tfoot>
 	<tbody>
 		<?php
 		foreach ( $this->model->get_data() as $group_name => $group ) {
 			?>
-			<tr class="row-group-title">
+			<tr class="row-group-title" scope="col">
 				<th colspan="3"><?php echo $group_name; ?></th>
 			</tr>
 			<?php
@@ -45,11 +52,4 @@ defined( 'ABSPATH' ) || die( 'Cheatin\' uh?' );
 		}
 		?>
 	</tbody>
-	<tfoot>
-		<tr>
-			<th scope="col"><?php _e( 'Test', 'imagify-tools' ); ?></th>
-			<th scope="col"><?php _e( 'Current value', 'imagify-tools' ); ?></th>
-			<th scope="col"><?php _e( 'More info', 'imagify-tools' ); ?></th>
-		</tr>
-	</tfoot>
 </table>

@@ -285,12 +285,7 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 						<?php _e( 'Delete All', 'imagify-tools' ); ?>
 					</span>
 				</a>
-				<?php
-
-				// Current time.
-				echo '<span class="imgt-current-time">' . mysql2date( __( '\<\b\>Y/m/d\<\/\b\> g:i:s a', 'imagify-tools' ), current_time( 'mysql' ), true ) . '</span>';
-			}
-			?>
+				<?php } ?>
 		</div>
 		<?php
 		/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
