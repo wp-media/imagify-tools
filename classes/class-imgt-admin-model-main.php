@@ -253,13 +253,7 @@ class IMGT_Admin_Model_Main {
 			__( 'Requests Tests', 'imagify-tools' ) => $requests,
 			__( 'Attachments', 'imagify-tools' ) => array(
 				array(
-					'label'     => __( 'Attachments without mandatory WP metas', 'imagify-tools' ),
-					'value'     => $this->count_medias_without_wp_metas(),
-					'is_error'  => $this->count_medias_without_wp_metas() > 0,
-					'more_info' => $this->get_clear_cache_link( 'imgt_medias_no_wp_metas', 'clear_medias_without_wp_metas_cache' ),
-				),
-				array(
-					'label'     => __( 'Attachments with invalid WP metas', 'imagify-tools' ),
+					'label'     => __( 'Attachments with invalid or missing WP metas', 'imagify-tools' ),
 					'value'     => $this->count_medias_with_invalid_wp_metas(),
 					'is_error'  => $this->count_medias_with_invalid_wp_metas() > 0,
 					'more_info' => $this->get_clear_cache_link( 'imgt_medias_invalid_wp_metas', 'clear_medias_with_invalid_wp_metas_cache' ),
@@ -480,53 +474,6 @@ class IMGT_Admin_Model_Main {
 	}
 
 	/**
-	 * Get the number of attachment where the mandatory post metas are missing.
-	 *
-	 * @since  1.0.2
-	 * @author Grégory Viguier
-	 *
-	 * @return int
-	 */
-	protected function count_medias_without_wp_metas() {
-		global $wpdb;
-		static $transient_value;
-
-		if ( isset( $transient_value ) ) {
-			return $transient_value;
-		}
-
-		$transient_name  = 'imgt_medias_no_wp_metas';
-		$transient_value = imagify_tools_get_site_transient( $transient_name );
-
-		if ( false !== $transient_value ) {
-			return (int) $transient_value;
-		}
-
-		$mime_types = esc_sql( $this->get_mime_types() );
-		$mime_types = "'" . implode( "','", $mime_types ) . "'";
-		$statuses   = esc_sql( $this->get_post_statuses() );
-		$statuses   = "'" . implode( "','", $statuses ) . "'";
-
-		$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
-			"
-			SELECT COUNT( p.ID )
-			FROM $wpdb->posts AS p
-			LEFT JOIN $wpdb->postmeta AS mt1
-				ON ( p.ID = mt1.post_id AND mt1.meta_key = '_wp_attached_file' )
-			LEFT JOIN $wpdb->postmeta AS mt2
-				ON ( p.ID = mt2.post_id AND mt2.meta_key = '_wp_attachment_metadata' )
-			WHERE p.post_mime_type IN ( $mime_types )
-				AND p.post_type = 'attachment'
-				AND p.post_status IN ( $statuses )
-				AND ( mt1.meta_value IS NULL OR mt2.meta_value IS NULL )"
-		);
-
-		imagify_tools_set_site_transient( $transient_name, $transient_value, self::CACHE_DURATION * MINUTE_IN_SECONDS );
-
-		return $transient_value;
-	}
-
-	/**
 	 * Get the number of attachment where the post meta '_wp_attached_file' can't be worked with.
 	 *
 	 * @since  1.0.2
@@ -549,24 +496,45 @@ class IMGT_Admin_Model_Main {
 			return (int) $transient_value;
 		}
 
-		$mime_types = $this->get_mime_types();
-		$extensions = implode( '|', array_keys( $mime_types ) );
-		$mime_types = esc_sql( $mime_types );
-		$mime_types = "'" . implode( "','", $mime_types ) . "'";
-		$statuses   = esc_sql( $this->get_post_statuses() );
-		$statuses   = "'" . implode( "','", $statuses ) . "'";
+		if ( class_exists( 'Imagify_DB', true ) && method_exists( 'Imagify_DB', 'get_required_wp_metadata_where_clause' ) ) {
+			$mime_types      = Imagify_DB::get_mime_types();
+			$statuses        = Imagify_DB::get_post_statuses();
+			$nodata_join     = Imagify_DB::get_required_wp_metadata_join_clause( 'p.ID', false, false );
+			$nodata_where    = Imagify_DB::get_required_wp_metadata_where_clause( array(), false, false );
+			$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
+				"
+				SELECT COUNT( p.ID )
+				FROM $wpdb->posts AS p
+					$nodata_join
+				WHERE p.post_mime_type IN ( $mime_types )
+					AND p.post_type = 'attachment'
+					AND p.post_status IN ( $statuses )
+					$nodata_where"
+			);
+		} else {
+			$mime_types = $this->get_mime_types();
+			$extensions = implode( '|', array_keys( $mime_types ) );
+			$extensions = explode( '|', $extensions );
+			$extensions = "OR ( LOWER( imrwpmt1.meta_value ) NOT LIKE '%." . implode( "' AND LOWER( imrwpmt1.meta_value ) NOT LIKE '%.", $extensions ) . "' )";
+			$mime_types = esc_sql( $mime_types );
+			$mime_types = "'" . implode( "','", $mime_types ) . "'";
+			$statuses   = esc_sql( $this->get_post_statuses() );
+			$statuses   = "'" . implode( "','", $statuses ) . "'";
 
-		$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
-			"
-			SELECT COUNT( p.ID )
-			FROM $wpdb->posts AS p
-			LEFT JOIN $wpdb->postmeta AS mt1
-				ON ( p.ID = mt1.post_id AND mt1.meta_key = '_wp_attached_file' )
-			WHERE p.post_mime_type IN ( $mime_types )
-				AND p.post_type = 'attachment'
-				AND p.post_status IN ( $statuses )
-				AND ( mt1.meta_value LIKE '%://%' OR mt1.meta_value LIKE '_:\\\\\%' OR LOWER( mt1.meta_value ) NOT REGEXP '.+\.($extensions)' )"
-		);
+			$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
+				"
+				SELECT COUNT( p.ID )
+				FROM $wpdb->posts AS p
+				LEFT JOIN $wpdb->postmeta AS imrwpmt1
+					ON ( p.ID = imrwpmt1.post_id AND imrwpmt1.meta_key = '_wp_attached_file' )
+				LEFT JOIN $wpdb->postmeta AS imrwpmt2
+					ON ( p.ID = imrwpmt2.post_id AND imrwpmt2.meta_key = '_wp_attachment_metadata' )
+				WHERE p.post_mime_type IN ( $mime_types )
+					AND p.post_type = 'attachment'
+					AND p.post_status IN ( $statuses )
+					AND ( imrwpmt2.meta_value IS NULL OR imrwpmt1.meta_value IS NULL OR imrwpmt1.meta_value LIKE '%://%' OR imrwpmt1.meta_value LIKE '_:\\\\\%' $extensions )"
+			);
+		}
 
 		imagify_tools_set_site_transient( $transient_name, $transient_value, self::CACHE_DURATION * MINUTE_IN_SECONDS );
 

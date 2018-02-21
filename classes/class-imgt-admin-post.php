@@ -96,9 +96,6 @@ class IMGT_Admin_Post {
 		// Clear Imagify user cache.
 		add_action( 'admin_post_' . self::get_action( 'clear_imagify_user_cache' ),                 array( $this, 'clear_imagify_user_cache_cb' ) );
 
-		// Clear missing metas cache.
-		add_action( 'admin_post_' . self::get_action( 'clear_medias_without_wp_metas_cache' ),      array( $this, 'clear_medias_without_wp_metas_cache_cb' ) );
-
 		// Clear invalid metas cache.
 		add_action( 'admin_post_' . self::get_action( 'clear_medias_with_invalid_wp_metas_cache' ), array( $this, 'clear_medias_with_invalid_wp_metas_cache_cb' ) );
 
@@ -283,20 +280,6 @@ class IMGT_Admin_Post {
 		imagify_tools_delete_site_transient( 'imgt_user' );
 
 		$this->redirect( 'imagify_user_cache_cleared', __( 'Imagify User cache cleared.', 'imagify-tools' ) );
-	}
-
-	/**
-	 * Admin post callback that allows to clear the cache used for medias without WP metas (Infos page).
-	 *
-	 * @since  1.0.2
-	 * @author Grégory Viguier
-	 */
-	public function clear_medias_without_wp_metas_cache_cb() {
-		$this->check_nonce_and_user( self::get_action( 'clear_medias_without_wp_metas_cache' ) );
-
-		imagify_tools_delete_site_transient( 'imgt_medias_no_wp_metas' );
-
-		$this->redirect( 'imagify_medias_without_wp_metas_cache_cleared', __( 'Cache for medias without WP metas cleared.', 'imagify-tools' ) );
 	}
 
 	/**
