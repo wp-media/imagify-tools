@@ -15,7 +15,7 @@ class IMGT_Attachments_Metas {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * Meta box ID.
@@ -220,24 +220,31 @@ class IMGT_Attachments_Metas {
 				continue;
 			}
 
-			$nbr_metas = count( $meta_values );
+			$multiple_metas = count( $meta_values ) > 1;
 
 			echo '<tr>';
+			echo '<th>' . $meta_name . '</th>';
+			echo '<td>';
 
-			echo '<th' . ( $nbr_metas > 1 ? ' rowspan="' . $nbr_metas . '"' : '' ) . '>' . $meta_name . '</th>';
+			$separator = '';
 
 			foreach ( $meta_values as $meta_value ) {
-				echo '<td><pre>';
-
 				if ( is_numeric( $meta_value ) || is_null( $meta_value ) || is_bool( $meta_value ) ) {
+					ob_start();
 					call_user_func( 'var_dump', $meta_value );
+					$meta_value = trim( strip_tags( ob_get_clean() ) );
+					$meta_value = preg_replace( '@^.+\.php:\d+:@', '', $meta_value );
+					$meta_value = preg_replace( '@\(length=\d+\)$@', '<em><small>\0</small></em>', $meta_value );
 				} else {
-					echo esc_html( call_user_func( 'print_r', $meta_value, 1 ) );
+					$meta_value = esc_html( call_user_func( 'print_r', $meta_value, 1 ) );
 				}
 
-				echo '</pre></td>';
+				echo $separator;
+				echo '<pre>' . $meta_value . '</pre>';
+				$separator = $multiple_metas ? '<hr/>' : '';
 			}
 
+			echo '</td>';
 			echo '</tr>';
 		}
 

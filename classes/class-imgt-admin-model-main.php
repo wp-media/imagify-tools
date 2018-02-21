@@ -15,7 +15,7 @@ class IMGT_Admin_Model_Main {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * Info cache duration in minutes.
@@ -251,6 +251,14 @@ class IMGT_Admin_Model_Main {
 				),
 			),
 			__( 'Requests Tests', 'imagify-tools' ) => $requests,
+			__( 'Attachments', 'imagify-tools' ) => array(
+				array(
+					'label'     => __( 'Attachments with invalid or missing WP metas', 'imagify-tools' ),
+					'value'     => $this->count_medias_with_invalid_wp_metas(),
+					'is_error'  => $this->count_medias_with_invalid_wp_metas() > 0,
+					'more_info' => $this->get_clear_cache_link( 'imgt_medias_invalid_wp_metas', 'clear_medias_with_invalid_wp_metas_cache' ),
+				),
+			),
 			__( 'Various Tests and Values', 'imagify-tools' ) => array(
 				array(
 					'label'     => __( 'Your IP address', 'imagify-tools' ),
@@ -298,8 +306,8 @@ class IMGT_Admin_Model_Main {
 				),
 				array(
 					'label'     => __( 'Imagify User', 'imagify-tools' ),
-					'value'     => $this->get_imagify_user() ? $this->get_imagify_user() : __( 'Needs Imagify to be installed', 'imagify-tools' ),
-					'more_info' => $this->get_clear_imagify_user_cache_link(),
+					'value'     => $this->get_imagify_user(),
+					'more_info' => $this->get_clear_cache_link( 'imgt_user', 'clear_imagify_user_cache' ),
 				),
 				array(
 					'label'     => '$_SERVER',
@@ -404,41 +412,133 @@ class IMGT_Admin_Model_Main {
 	 * @return string
 	 */
 	protected function get_clear_request_cache_link( $url, $method = 'GET' ) {
-		$link  = $this->are_requests_blocked( $url, $method ) ? '<br/>' : '';
-		$link .= ' <a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( $this->get_clear_request_cache_url( $url, $method ) ) . '">' . __( 'Clear cache', 'imagify-tools' ) . '</a>';
+		$line_break     = $this->are_requests_blocked( $url, $method ) ? '<br/>' : '';
+		$method         = strtoupper( $method );
+		$transient_name = substr( md5( "$url|$method" ), 0, 10 );
 
-		$method            = strtoupper( $method );
-		$transient_name    = self::REQUEST_CACHE_PREFIX . substr( md5( "$url|$method" ), 0, 10 );
-		$transient_timeout = $this->get_transient_timeout( $transient_name );
-		$current_time      = time();
-
-		if ( ! $transient_timeout || $transient_timeout < $current_time ) {
-			$time_diff = self::CACHE_DURATION;
-		} else {
-			$time_diff = $transient_timeout - $current_time;
-			$time_diff = ceil( $time_diff / MINUTE_IN_SECONDS );
-		}
-
-		/* translators: %d is a number of minutes. */
-		return $link .= ' <span class="imgt-small-info">(' . sprintf( _n( 'cache cleared in less than %d minute', 'cache cleared in less than %d minutes', $time_diff, 'imagify-tools' ), $time_diff ) . ')</span>';
+		return $line_break . $this->get_clear_cache_link( self::REQUEST_CACHE_PREFIX . $transient_name, 'clear_request_cache', array( 'cache' => $transient_name ) );
 	}
 
 	/**
-	 * Get the URL to clear the request cache (delete the transient).
+	 * Get all mime types which could be optimized by Imagify.
 	 *
-	 * @since  1.0
+	 * @since  1.0.2
 	 * @author Grégory Viguier
 	 *
-	 * @param  string $url    An URL.
-	 * @param  string $method The http method to use.
-	 * @return string
+	 * @return array The mime types.
 	 */
-	protected function get_clear_request_cache_url( $url, $method = 'GET' ) {
-		$method    = strtoupper( $method );
-		$cache_key = substr( md5( "$url|$method" ), 0, 10 );
-		$action    = IMGT_Admin_Post::get_action( 'clear_request_cache' );
+	public function get_mime_types() {
+		if ( function_exists( 'imagify_get_mime_types' ) ) {
+			return imagify_get_mime_types();
+		}
 
-		return wp_nonce_url( admin_url( 'admin-post.php?action=' . $action . '&cache=' . $cache_key ), $action );
+		return array(
+			'jpg|jpeg|jpe' => 'image/jpeg',
+			'png'          => 'image/png',
+			'gif'          => 'image/gif',
+		);
+	}
+
+	/**
+	 * Get post statuses related to attachments.
+	 *
+	 * @since  1.0.2
+	 * @author Grégory Viguier
+	 *
+	 * @return array The post statuses.
+	 */
+	public function get_post_statuses() {
+		static $statuses;
+
+		if ( function_exists( 'imagify_get_post_statuses' ) ) {
+			return imagify_get_post_statuses();
+		}
+
+		if ( isset( $statuses ) ) {
+			return $statuses;
+		}
+
+		$statuses = array(
+			'inherit' => 'inherit',
+			'private' => 'private',
+		);
+
+		$custom_statuses = get_post_stati( array( 'public' => true ) );
+		unset( $custom_statuses['publish'] );
+
+		if ( $custom_statuses ) {
+			$statuses = array_merge( $statuses, $custom_statuses );
+		}
+
+		return $statuses;
+	}
+
+	/**
+	 * Get the number of attachment where the post meta '_wp_attached_file' can't be worked with.
+	 *
+	 * @since  1.0.2
+	 * @author Grégory Viguier
+	 *
+	 * @return int
+	 */
+	protected function count_medias_with_invalid_wp_metas() {
+		global $wpdb;
+		static $transient_value;
+
+		if ( isset( $transient_value ) ) {
+			return $transient_value;
+		}
+
+		$transient_name  = 'imgt_medias_invalid_wp_metas';
+		$transient_value = imagify_tools_get_site_transient( $transient_name );
+
+		if ( false !== $transient_value ) {
+			return (int) $transient_value;
+		}
+
+		if ( class_exists( 'Imagify_DB', true ) && method_exists( 'Imagify_DB', 'get_required_wp_metadata_where_clause' ) ) {
+			$mime_types      = Imagify_DB::get_mime_types();
+			$statuses        = Imagify_DB::get_post_statuses();
+			$nodata_join     = Imagify_DB::get_required_wp_metadata_join_clause( 'p.ID', false, false );
+			$nodata_where    = Imagify_DB::get_required_wp_metadata_where_clause( array(), false, false );
+			$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
+				"
+				SELECT COUNT( p.ID )
+				FROM $wpdb->posts AS p
+					$nodata_join
+				WHERE p.post_mime_type IN ( $mime_types )
+					AND p.post_type = 'attachment'
+					AND p.post_status IN ( $statuses )
+					$nodata_where"
+			);
+		} else {
+			$mime_types = $this->get_mime_types();
+			$extensions = implode( '|', array_keys( $mime_types ) );
+			$extensions = explode( '|', $extensions );
+			$extensions = "OR ( LOWER( imrwpmt1.meta_value ) NOT LIKE '%." . implode( "' AND LOWER( imrwpmt1.meta_value ) NOT LIKE '%.", $extensions ) . "' )";
+			$mime_types = esc_sql( $mime_types );
+			$mime_types = "'" . implode( "','", $mime_types ) . "'";
+			$statuses   = esc_sql( $this->get_post_statuses() );
+			$statuses   = "'" . implode( "','", $statuses ) . "'";
+
+			$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
+				"
+				SELECT COUNT( p.ID )
+				FROM $wpdb->posts AS p
+				LEFT JOIN $wpdb->postmeta AS imrwpmt1
+					ON ( p.ID = imrwpmt1.post_id AND imrwpmt1.meta_key = '_wp_attached_file' )
+				LEFT JOIN $wpdb->postmeta AS imrwpmt2
+					ON ( p.ID = imrwpmt2.post_id AND imrwpmt2.meta_key = '_wp_attachment_metadata' )
+				WHERE p.post_mime_type IN ( $mime_types )
+					AND p.post_type = 'attachment'
+					AND p.post_status IN ( $statuses )
+					AND ( imrwpmt2.meta_value IS NULL OR imrwpmt1.meta_value IS NULL OR imrwpmt1.meta_value LIKE '%://%' OR imrwpmt1.meta_value LIKE '_:\\\\\%' $extensions )"
+			);
+		}
+
+		imagify_tools_set_site_transient( $transient_name, $transient_value, self::CACHE_DURATION * MINUTE_IN_SECONDS );
+
+		return $transient_value;
 	}
 
 	/**
@@ -447,13 +547,13 @@ class IMGT_Admin_Model_Main {
 	 * @since  1.0
 	 * @author Grégory Viguier
 	 *
-	 * @return object|null
+	 * @return object|string
 	 */
 	protected function get_imagify_user() {
 		static $imagify_user;
 
 		if ( ! function_exists( 'get_imagify_user' ) ) {
-			return null;
+			return __( 'Needs Imagify to be installed', 'imagify-tools' );
 		}
 
 		if ( isset( $imagify_user ) ) {
@@ -471,21 +571,20 @@ class IMGT_Admin_Model_Main {
 	}
 
 	/**
-	 * Get the link to clear the Imagify user cache (delete the transient).
+	 * Get the link to clear a cache (delete the transient).
 	 *
 	 * @since  1.0
 	 * @author Grégory Viguier
 	 *
+	 * @param  string $transient_name Name of the transient that stores the data.
+	 * @param  string $clear_action   Admin post action.
+	 * @param  array  $args           Parameters to add to the link URL.
 	 * @return string
 	 */
-	protected function get_clear_imagify_user_cache_link() {
-		if ( ! $this->get_imagify_user() ) {
-			return '';
-		}
+	protected function get_clear_cache_link( $transient_name, $clear_action, $args = array() ) {
+		$link = ' <a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( $this->get_clear_cache_url( $clear_action, $args ) ) . '">' . __( 'Clear cache', 'imagify-tools' ) . '</a>';
 
-		$link = ' <a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( $this->get_clear_imagify_user_cache_url() ) . '">' . __( 'Clear cache', 'imagify-tools' ) . '</a>';
-
-		$transient_timeout = $this->get_transient_timeout( 'imgt_user' );
+		$transient_timeout = $this->get_transient_timeout( $transient_name );
 		$current_time      = time();
 
 		if ( ! $transient_timeout || $transient_timeout < $current_time ) {
@@ -500,17 +599,20 @@ class IMGT_Admin_Model_Main {
 	}
 
 	/**
-	 * Get the URL to clear the Imagify user cache (delete the transient).
+	 * Get the URL to clear a cache (delete the transient).
 	 *
 	 * @since  1.0
 	 * @author Grégory Viguier
 	 *
+	 * @param  string $action Admin post action.
+	 * @param  array  $args   Parameters to add to the link URL.
 	 * @return string
 	 */
-	protected function get_clear_imagify_user_cache_url() {
-		$action = IMGT_Admin_Post::get_action( 'clear_imagify_user_cache' );
+	protected function get_clear_cache_url( $action, $args = array() ) {
+		$action = IMGT_Admin_Post::get_action( $action );
+		$url    = wp_nonce_url( admin_url( 'admin-post.php?action=' . $action ), $action );
 
-		return wp_nonce_url( admin_url( 'admin-post.php?action=' . $action ), $action );
+		return $args ? add_query_arg( $args, $url ) : $url;
 	}
 
 	/**

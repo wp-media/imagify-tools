@@ -15,7 +15,7 @@ class IMGT_Admin_Post {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * A prefix used in various places.
@@ -76,31 +76,34 @@ class IMGT_Admin_Post {
 		 * Logs.
 		 */
 		// Download Logs list.
-		add_action( 'admin_post_' . self::get_action( 'download_logs' ),            array( $this, 'download_logs_cb' ) );
+		add_action( 'admin_post_' . self::get_action( 'download_logs' ),                            array( $this, 'download_logs_cb' ) );
 
 		// Delete all Logs list.
-		add_action( 'admin_post_' . self::get_action( 'delete_logs' ),              array( $this, 'clear_logs_cb' ) );
+		add_action( 'admin_post_' . self::get_action( 'delete_logs' ),                              array( $this, 'clear_logs_cb' ) );
 
 		// Bulk delete Logs.
-		add_action( 'admin_post_' . self::get_action( 'bulk_delete_logs' ),         array( $this, 'bulk_delete_logs_cb' ) );
+		add_action( 'admin_post_' . self::get_action( 'bulk_delete_logs' ),                         array( $this, 'bulk_delete_logs_cb' ) );
 
 		// Delete a Log.
-		add_action( 'admin_post_' . self::get_action( 'delete_log' ),               array( $this, 'delete_log_cb' ) );
+		add_action( 'admin_post_' . self::get_action( 'delete_log' ),                               array( $this, 'delete_log_cb' ) );
 
 		// Blocking requests.
-		add_action( 'admin_post_' . self::get_action( 'switch_blocking_requests' ), array( $this, 'switch_blocking_requests_cb' ) );
+		add_action( 'admin_post_' . self::get_action( 'switch_blocking_requests' ),                 array( $this, 'switch_blocking_requests_cb' ) );
 
 		// Clear request cache.
-		add_action( 'admin_post_' . self::get_action( 'clear_request_cache' ),      array( $this, 'clear_request_cache_cb' ) );
+		add_action( 'admin_post_' . self::get_action( 'clear_request_cache' ),                      array( $this, 'clear_request_cache_cb' ) );
 
 		// Clear Imagify user cache.
-		add_action( 'admin_post_' . self::get_action( 'clear_imagify_user_cache' ), array( $this, 'clear_imagify_user_cache_cb' ) );
+		add_action( 'admin_post_' . self::get_action( 'clear_imagify_user_cache' ),                 array( $this, 'clear_imagify_user_cache_cb' ) );
+
+		// Clear invalid metas cache.
+		add_action( 'admin_post_' . self::get_action( 'clear_medias_with_invalid_wp_metas_cache' ), array( $this, 'clear_medias_with_invalid_wp_metas_cache_cb' ) );
 
 		// Fix NGG table engine.
-		add_action( 'admin_post_' . self::get_action( 'fix_ngg_table_engine' ),     array( $this, 'fix_ngg_table_engine_cb' ) );
+		add_action( 'admin_post_' . self::get_action( 'fix_ngg_table_engine' ),                     array( $this, 'fix_ngg_table_engine_cb' ) );
 
 		// Uninstall this plugin (when a MU Plugin).
-		add_action( 'admin_post_' . self::get_action( 'uninstall' ),                array( $this, 'uninstall_cb' ) );
+		add_action( 'admin_post_' . self::get_action( 'uninstall' ),                                array( $this, 'uninstall_cb' ) );
 	}
 
 
@@ -277,6 +280,20 @@ class IMGT_Admin_Post {
 		imagify_tools_delete_site_transient( 'imgt_user' );
 
 		$this->redirect( 'imagify_user_cache_cleared', __( 'Imagify User cache cleared.', 'imagify-tools' ) );
+	}
+
+	/**
+	 * Admin post callback that allows to clear the cache used for medias without WP metas (Infos page).
+	 *
+	 * @since  1.0.2
+	 * @author Grégory Viguier
+	 */
+	public function clear_medias_with_invalid_wp_metas_cache_cb() {
+		$this->check_nonce_and_user( self::get_action( 'clear_medias_with_invalid_wp_metas_cache' ) );
+
+		imagify_tools_delete_site_transient( 'imgt_medias_invalid_wp_metas' );
+
+		$this->redirect( 'imagify_medias_with_invalid_wp_metas_cache_cleared', __( 'Cache for medias with invalid WP metas cleared.', 'imagify-tools' ) );
 	}
 
 	/**

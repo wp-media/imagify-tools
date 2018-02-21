@@ -16,7 +16,7 @@ class IMGT_Log {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * A DATETIME formated date.
@@ -341,7 +341,7 @@ class IMGT_Log {
 
 		$ajax_url = preg_quote( admin_url( 'admin-ajax.php' ), '@' );
 
-		if ( isset( $args['method'], $args['body']['action'] ) && 'POST' === strtoupper( $args['method'] ) && preg_match( '@^imagify_@', $args['body']['action'] ) && preg_match( '@^' . $ajax_url . '@', $url ) ) {
+		if ( isset( $args['method'], $args['body']['action'] ) && 'POST' === strtoupper( $args['method'] ) && 0 === strpos( 'imagify_', $args['body']['action'] ) && preg_match( '@^' . $ajax_url . '@', $url ) ) {
 			return compact( 'url', 'args', 'response' );
 		}
 
