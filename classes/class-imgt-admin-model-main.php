@@ -77,6 +77,23 @@ class IMGT_Admin_Model_Main {
 		$backup_dir = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
 
 		/**
+		 * Image editor.
+		 */
+		$image_path = admin_url( 'images/arrows.png' );
+		$image_path = str_replace( site_url( '/' ), ABSPATH, $image_path );
+
+		if ( file_exists( $image_path ) ) {
+			$image_editor = wp_get_image_editor( $image_path );
+
+			if ( ! is_wp_error( $image_editor ) ) {
+				$image_editor = get_class( $image_editor );
+				$image_editor = str_replace( 'WP_Image_Editor_', '', $image_editor );
+			}
+		} else {
+			$image_editor = new WP_Error( 'image_not_found', __( 'Image not found.', 'imagify-tools' ) );
+		}
+
+		/**
 		 * Requests.
 		 */
 		$blocking_link = imagify_tools_get_site_transient( 'imgt_blocking_requests' ) ? __( 'Make optimization back to async', 'imagify-tools' ) : __( 'Make optimization non async', 'imagify-tools' );
@@ -248,6 +265,13 @@ class IMGT_Admin_Model_Main {
 					'compare'   => defined( 'FS_CHMOD_FILE' ) ? $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')' : null,
 					/* translators: %s is a value. */
 					'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
+				),
+				array(
+					'label'     => __( 'Image Editor Component', 'imagify-tools' ),
+					'value'     => is_wp_error( $image_editor ) ? $image_editor->get_error_message() : $image_editor,
+					'is_error'  => is_wp_error( $image_editor ),
+					/* translators: 1 and 2 are values. */
+					'more_info' => sprintf( __( 'Should be %1$s or %2$s.', 'imagify-tools' ), '<code>Imagick</code>', '<code>GD</code>' ),
 				),
 			),
 			__( 'Requests Tests', 'imagify-tools' ) => $requests,
