@@ -98,7 +98,9 @@ class IMGT_Admin_Model_Main {
 		 */
 		$blocking_link = imagify_tools_get_site_transient( 'imgt_blocking_requests' ) ? __( 'Make optimization back to async', 'imagify-tools' ) : __( 'Make optimization non async', 'imagify-tools' );
 		$blocking_link = '<a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ), IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ) ) . '">' . $blocking_link . '</a>';
-		$requests = array(
+		$ajax_url      = admin_url( 'admin-ajax.php?action=' . IMGT_Admin_Post::get_action( 'test' ) );
+		$post_url      = admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'test' ) );
+		$requests      = array(
 			array(
 				'label'     => __( 'cURL enabled', 'imagify-tools' ),
 				'value'     => function_exists( 'curl_init' ) && function_exists( 'curl_exec' ),
@@ -129,21 +131,21 @@ class IMGT_Admin_Model_Main {
 			array(
 				/* translators: %s is a URL. */
 				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>' . preg_replace( '@^https?://@', '', admin_url( 'admin-ajax.php' ) ) . '</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( admin_url( 'admin-ajax.php' ), 'POST' ),
+				'value'     => (bool) $this->are_requests_blocked( $ajax_url, 'POST' ),
 				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( admin_url( 'admin-ajax.php' ), 'POST' ) . $this->get_clear_request_cache_link( admin_url( 'admin-ajax.php' ), 'POST' ),
+				'more_info' => $this->are_requests_blocked( $ajax_url, 'POST' ) . $this->get_clear_request_cache_link( $ajax_url, 'POST' ),
 			),
 		);
 
-		if ( $this->are_requests_blocked( admin_url( 'admin-ajax.php' ), 'POST' ) && preg_match( '@^https://@', admin_url( 'admin-ajax.php' ) ) ) {
+		if ( $this->are_requests_blocked( $ajax_url, 'POST' ) && preg_match( '@^https://@', $ajax_url ) ) {
 			/* translators: %s is a URL. */
 			$requests[4]['label'] = sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>' . admin_url( 'admin-ajax.php' ) . '</code>' );
 
 			$urls = array(
-				set_url_scheme( admin_url( 'admin-post.php' ), 'https' ),
+				set_url_scheme( $post_url, 'https' ),
 				set_url_scheme( site_url( 'wp-cron.php' ), 'https' ),
-				set_url_scheme( admin_url( 'admin-ajax.php' ), 'http' ),
-				set_url_scheme( admin_url( 'admin-post.php' ), 'http' ),
+				set_url_scheme( $ajax_url, 'http' ),
+				set_url_scheme( $post_url, 'http' ),
 				set_url_scheme( site_url( 'wp-cron.php' ), 'http' ),
 			);
 

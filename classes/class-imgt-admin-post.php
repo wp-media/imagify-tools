@@ -87,6 +87,13 @@ class IMGT_Admin_Post {
 		// Delete a Log.
 		add_action( 'admin_post_' . self::get_action( 'delete_log' ),                               array( $this, 'delete_log_cb' ) );
 
+		/**
+		 * Infos page.
+		 */
+		// Ajax test.
+		add_action( 'wp_ajax_' . self::get_action( 'test' ),                                        array( $this, 'ajax_test_cb' ) );
+		add_action( 'admin_post_' . self::get_action( 'test' ),                                     array( $this, 'ajax_test_cb' ) );
+
 		// Blocking requests.
 		add_action( 'admin_post_' . self::get_action( 'switch_blocking_requests' ),                 array( $this, 'switch_blocking_requests_cb' ) );
 
@@ -102,6 +109,9 @@ class IMGT_Admin_Post {
 		// Fix NGG table engine.
 		add_action( 'admin_post_' . self::get_action( 'fix_ngg_table_engine' ),                     array( $this, 'fix_ngg_table_engine_cb' ) );
 
+		/**
+		 * Uninstall.
+		 */
 		// Uninstall this plugin (when a MU Plugin).
 		add_action( 'admin_post_' . self::get_action( 'uninstall' ),                                array( $this, 'uninstall_cb' ) );
 	}
@@ -226,6 +236,17 @@ class IMGT_Admin_Post {
 		}
 
 		$this->redirect( 'log_deleted', __( 'Log permanently deleted.', 'imagify-tools' ) );
+	}
+
+	/**
+	 * Ajax test.
+	 *
+	 * @since  1.0
+	 * @author Grégory Viguier
+	 */
+	public function ajax_test_cb() {
+		echo 'OK';
+		die();
 	}
 
 	/**
