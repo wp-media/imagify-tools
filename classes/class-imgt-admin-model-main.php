@@ -161,6 +161,43 @@ class IMGT_Admin_Model_Main {
 		}
 
 		/**
+		 * Attachments / Files.
+		 */
+		$attachments = array(
+			array(
+				'label'     => __( 'Attachments with invalid or missing WP metas', 'imagify-tools' ),
+				'value'     => $this->count_medias_with_invalid_wp_metas(),
+				'is_error'  => $this->count_medias_with_invalid_wp_metas() > 0,
+				'more_info' => $this->get_clear_cache_link( 'imgt_medias_invalid_wp_metas', 'clear_medias_with_invalid_wp_metas_cache' ),
+			),
+		);
+
+		if ( class_exists( 'Imagify_Folders_DB', true ) ) {
+			$attachments[] = array(
+				'label'   => __( 'Folders table is ready', 'imagify-tools' ),
+				'value'   => Imagify_Folders_DB::get_instance()->can_operate(),
+				'compare' => true,
+			);
+		}
+
+		if ( class_exists( 'Imagify_Files_DB', true ) ) {
+			$attachments[] = array(
+				'label'   => __( 'Files table is ready', 'imagify-tools' ),
+				'value'   => Imagify_Files_DB::get_instance()->can_operate(),
+				'compare' => true,
+			);
+		}
+
+		if ( $this->count_orphan_files() !== false ) {
+			$attachments[] = array(
+				'label'     => __( 'Orphan files count', 'imagify-tools' ),
+				'value'     => $this->count_orphan_files(),
+				'is_error'  => $this->count_orphan_files() > 0,
+				'more_info' => $this->get_clear_cache_link( 'imgt_orphan_files', 'clear_orphan_files_cache' ),
+			);
+		}
+
+		/**
 		 * Table NGG.
 		 */
 		$ngg_table_engine_fix_link = '';
@@ -277,14 +314,7 @@ class IMGT_Admin_Model_Main {
 				),
 			),
 			__( 'Requests Tests', 'imagify-tools' ) => $requests,
-			__( 'Attachments', 'imagify-tools' ) => array(
-				array(
-					'label'     => __( 'Attachments with invalid or missing WP metas', 'imagify-tools' ),
-					'value'     => $this->count_medias_with_invalid_wp_metas(),
-					'is_error'  => $this->count_medias_with_invalid_wp_metas() > 0,
-					'more_info' => $this->get_clear_cache_link( 'imgt_medias_invalid_wp_metas', 'clear_medias_with_invalid_wp_metas_cache' ),
-				),
-			),
+			__( 'Attachments', 'imagify-tools' )    => $attachments,
 			__( 'Various Tests and Values', 'imagify-tools' ) => array(
 				array(
 					'label'     => __( 'Your IP address', 'imagify-tools' ),
@@ -560,6 +590,61 @@ class IMGT_Admin_Model_Main {
 					AND p.post_status IN ( $statuses )
 					AND ( imrwpmt2.meta_value IS NULL OR imrwpmt1.meta_value IS NULL OR imrwpmt1.meta_value LIKE '%://%' OR imrwpmt1.meta_value LIKE '_:\\\\\%' $extensions )"
 			);
+		}
+
+		imagify_tools_set_site_transient( $transient_name, $transient_value, self::CACHE_DURATION * MINUTE_IN_SECONDS );
+
+		return $transient_value;
+	}
+
+	/**
+	 * Get the number of "custom files" that have no folder.
+	 *
+	 * @since  1.0.2
+	 * @author Grégory Viguier
+	 *
+	 * @return int|bool The number of files. False if the tables are not ready.
+	 */
+	protected function count_orphan_files() {
+		global $wpdb;
+		static $transient_value;
+
+		if ( isset( $transient_value ) ) {
+			return $transient_value;
+		}
+
+		$folders_can_operate = class_exists( 'Imagify_Folders_DB', true ) && Imagify_Folders_DB::get_instance()->can_operate();
+		$files_can_operate   = class_exists( 'Imagify_Files_DB', true ) && Imagify_Files_DB::get_instance()->can_operate();
+
+		if ( ! $folders_can_operate || ! $files_can_operate ) {
+			$transient_value = false;
+			return $transient_value;
+		}
+
+		$transient_name  = 'imgt_orphan_files';
+		$transient_value = imagify_tools_get_site_transient( $transient_name );
+
+		if ( false !== $transient_value ) {
+			return (int) $transient_value;
+		}
+
+		$folders_db      = Imagify_Folders_DB::get_instance();
+		$folders_table   = $folders_db->get_table_name();
+		$folders_key     = $folders_db->get_primary_key();
+		$folders_key_esc = esc_sql( $folders_key );
+
+		$files_db      = Imagify_Files_DB::get_instance();
+		$files_table   = $files_db->get_table_name();
+		$files_key_esc = esc_sql( $files_db->get_primary_key() );
+		$folder_ids    = $wpdb->get_col( "SELECT $folders_key_esc FROM $folders_table" ); // WPCS: unprepared SQL ok.
+
+		if ( $folder_ids ) {
+			$folder_ids = $folders_db->cast_col( $folder_ids, $folders_key );
+			$folder_ids = Imagify_DB::prepare_values_list( $folder_ids );
+
+			$transient_value = (int) $wpdb->get_var( "SELECT COUNT( $files_key_esc ) FROM $files_table WHERE folder_id NOT IN ( $folder_ids )" ); // WPCS: unprepared SQL ok.
+		} else {
+			$transient_value = (int) $wpdb->get_var( "SELECT COUNT( $files_key_esc ) FROM $files_table" ); // WPCS: unprepared SQL ok.
 		}
 
 		imagify_tools_set_site_transient( $transient_name, $transient_value, self::CACHE_DURATION * MINUTE_IN_SECONDS );
