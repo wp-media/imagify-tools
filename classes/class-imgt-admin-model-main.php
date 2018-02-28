@@ -15,7 +15,7 @@ class IMGT_Admin_Model_Main {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * Info cache duration in minutes.
@@ -77,11 +77,30 @@ class IMGT_Admin_Model_Main {
 		$backup_dir = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
 
 		/**
+		 * Image editor.
+		 */
+		$image_path = admin_url( 'images/arrows.png' );
+		$image_path = str_replace( site_url( '/' ), ABSPATH, $image_path );
+
+		if ( file_exists( $image_path ) ) {
+			$image_editor = wp_get_image_editor( $image_path );
+
+			if ( ! is_wp_error( $image_editor ) ) {
+				$image_editor = get_class( $image_editor );
+				$image_editor = str_replace( 'WP_Image_Editor_', '', $image_editor );
+			}
+		} else {
+			$image_editor = new WP_Error( 'image_not_found', __( 'Image not found.', 'imagify-tools' ) );
+		}
+
+		/**
 		 * Requests.
 		 */
 		$blocking_link = imagify_tools_get_site_transient( 'imgt_blocking_requests' ) ? __( 'Make optimization back to async', 'imagify-tools' ) : __( 'Make optimization non async', 'imagify-tools' );
 		$blocking_link = '<a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ), IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ) ) . '">' . $blocking_link . '</a>';
-		$requests = array(
+		$ajax_url      = admin_url( 'admin-ajax.php?action=' . IMGT_Admin_Post::get_action( 'test' ) );
+		$post_url      = admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'test' ) );
+		$requests      = array(
 			array(
 				'label'     => __( 'cURL enabled', 'imagify-tools' ),
 				'value'     => function_exists( 'curl_init' ) && function_exists( 'curl_exec' ),
@@ -112,21 +131,21 @@ class IMGT_Admin_Model_Main {
 			array(
 				/* translators: %s is a URL. */
 				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>' . preg_replace( '@^https?://@', '', admin_url( 'admin-ajax.php' ) ) . '</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( admin_url( 'admin-ajax.php' ), 'POST' ),
+				'value'     => (bool) $this->are_requests_blocked( $ajax_url, 'POST' ),
 				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( admin_url( 'admin-ajax.php' ), 'POST' ) . $this->get_clear_request_cache_link( admin_url( 'admin-ajax.php' ), 'POST' ),
+				'more_info' => $this->are_requests_blocked( $ajax_url, 'POST' ) . $this->get_clear_request_cache_link( $ajax_url, 'POST' ),
 			),
 		);
 
-		if ( $this->are_requests_blocked( admin_url( 'admin-ajax.php' ), 'POST' ) && preg_match( '@^https://@', admin_url( 'admin-ajax.php' ) ) ) {
+		if ( $this->are_requests_blocked( $ajax_url, 'POST' ) && preg_match( '@^https://@', $ajax_url ) ) {
 			/* translators: %s is a URL. */
 			$requests[4]['label'] = sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>' . admin_url( 'admin-ajax.php' ) . '</code>' );
 
 			$urls = array(
-				set_url_scheme( admin_url( 'admin-post.php' ), 'https' ),
+				set_url_scheme( $post_url, 'https' ),
 				set_url_scheme( site_url( 'wp-cron.php' ), 'https' ),
-				set_url_scheme( admin_url( 'admin-ajax.php' ), 'http' ),
-				set_url_scheme( admin_url( 'admin-post.php' ), 'http' ),
+				set_url_scheme( $ajax_url, 'http' ),
+				set_url_scheme( $post_url, 'http' ),
 				set_url_scheme( site_url( 'wp-cron.php' ), 'http' ),
 			);
 
@@ -139,6 +158,43 @@ class IMGT_Admin_Model_Main {
 					'more_info' => $this->are_requests_blocked( $url, 'POST' ) . $this->get_clear_request_cache_link( $url, 'POST' ),
 				);
 			}
+		}
+
+		/**
+		 * Attachments / Files.
+		 */
+		$attachments = array(
+			array(
+				'label'     => __( 'Attachments with invalid or missing WP metas', 'imagify-tools' ),
+				'value'     => $this->count_medias_with_invalid_wp_metas(),
+				'is_error'  => $this->count_medias_with_invalid_wp_metas() > 0,
+				'more_info' => $this->get_clear_cache_link( 'imgt_medias_invalid_wp_metas', 'clear_medias_with_invalid_wp_metas_cache' ),
+			),
+		);
+
+		if ( class_exists( 'Imagify_Folders_DB', true ) ) {
+			$attachments[] = array(
+				'label'   => __( 'Folders table is ready', 'imagify-tools' ),
+				'value'   => Imagify_Folders_DB::get_instance()->can_operate(),
+				'compare' => true,
+			);
+		}
+
+		if ( class_exists( 'Imagify_Files_DB', true ) ) {
+			$attachments[] = array(
+				'label'   => __( 'Files table is ready', 'imagify-tools' ),
+				'value'   => Imagify_Files_DB::get_instance()->can_operate(),
+				'compare' => true,
+			);
+		}
+
+		if ( $this->count_orphan_files() !== false ) {
+			$attachments[] = array(
+				'label'     => __( 'Orphan files count', 'imagify-tools' ),
+				'value'     => $this->count_orphan_files(),
+				'is_error'  => $this->count_orphan_files() > 0,
+				'more_info' => $this->get_clear_cache_link( 'imgt_orphan_files', 'clear_orphan_files_cache' ),
+			);
 		}
 
 		/**
@@ -249,8 +305,16 @@ class IMGT_Admin_Model_Main {
 					/* translators: %s is a value. */
 					'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
 				),
+				array(
+					'label'     => __( 'Image Editor Component', 'imagify-tools' ),
+					'value'     => is_wp_error( $image_editor ) ? $image_editor->get_error_message() : $image_editor,
+					'is_error'  => is_wp_error( $image_editor ),
+					/* translators: 1 and 2 are values. */
+					'more_info' => sprintf( __( 'Should be %1$s or %2$s.', 'imagify-tools' ), '<code>Imagick</code>', '<code>GD</code>' ),
+				),
 			),
 			__( 'Requests Tests', 'imagify-tools' ) => $requests,
+			__( 'Attachments', 'imagify-tools' )    => $attachments,
 			__( 'Various Tests and Values', 'imagify-tools' ) => array(
 				array(
 					'label'     => __( 'Your IP address', 'imagify-tools' ),
@@ -298,8 +362,8 @@ class IMGT_Admin_Model_Main {
 				),
 				array(
 					'label'     => __( 'Imagify User', 'imagify-tools' ),
-					'value'     => $this->get_imagify_user() ? $this->get_imagify_user() : __( 'Needs Imagify to be installed', 'imagify-tools' ),
-					'more_info' => $this->get_clear_imagify_user_cache_link(),
+					'value'     => $this->get_imagify_user(),
+					'more_info' => $this->get_clear_cache_link( 'imgt_user', 'clear_imagify_user_cache' ),
 				),
 				array(
 					'label'     => '$_SERVER',
@@ -404,41 +468,188 @@ class IMGT_Admin_Model_Main {
 	 * @return string
 	 */
 	protected function get_clear_request_cache_link( $url, $method = 'GET' ) {
-		$link  = $this->are_requests_blocked( $url, $method ) ? '<br/>' : '';
-		$link .= ' <a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( $this->get_clear_request_cache_url( $url, $method ) ) . '">' . __( 'Clear cache', 'imagify-tools' ) . '</a>';
+		$line_break     = $this->are_requests_blocked( $url, $method ) ? '<br/>' : '';
+		$method         = strtoupper( $method );
+		$transient_name = substr( md5( "$url|$method" ), 0, 10 );
 
-		$method            = strtoupper( $method );
-		$transient_name    = self::REQUEST_CACHE_PREFIX . substr( md5( "$url|$method" ), 0, 10 );
-		$transient_timeout = $this->get_transient_timeout( $transient_name );
-		$current_time      = time();
-
-		if ( ! $transient_timeout || $transient_timeout < $current_time ) {
-			$time_diff = self::CACHE_DURATION;
-		} else {
-			$time_diff = $transient_timeout - $current_time;
-			$time_diff = ceil( $time_diff / MINUTE_IN_SECONDS );
-		}
-
-		/* translators: %d is a number of minutes. */
-		return $link .= ' <span class="imgt-small-info">(' . sprintf( _n( 'cache cleared in less than %d minute', 'cache cleared in less than %d minutes', $time_diff, 'imagify-tools' ), $time_diff ) . ')</span>';
+		return $line_break . $this->get_clear_cache_link( self::REQUEST_CACHE_PREFIX . $transient_name, 'clear_request_cache', array( 'cache' => $transient_name ) );
 	}
 
 	/**
-	 * Get the URL to clear the request cache (delete the transient).
+	 * Get all mime types which could be optimized by Imagify.
 	 *
-	 * @since  1.0
+	 * @since  1.0.2
 	 * @author Grégory Viguier
 	 *
-	 * @param  string $url    An URL.
-	 * @param  string $method The http method to use.
-	 * @return string
+	 * @return array The mime types.
 	 */
-	protected function get_clear_request_cache_url( $url, $method = 'GET' ) {
-		$method    = strtoupper( $method );
-		$cache_key = substr( md5( "$url|$method" ), 0, 10 );
-		$action    = IMGT_Admin_Post::get_action( 'clear_request_cache' );
+	public function get_mime_types() {
+		if ( function_exists( 'imagify_get_mime_types' ) ) {
+			return imagify_get_mime_types();
+		}
 
-		return wp_nonce_url( admin_url( 'admin-post.php?action=' . $action . '&cache=' . $cache_key ), $action );
+		return array(
+			'jpg|jpeg|jpe' => 'image/jpeg',
+			'png'          => 'image/png',
+			'gif'          => 'image/gif',
+		);
+	}
+
+	/**
+	 * Get post statuses related to attachments.
+	 *
+	 * @since  1.0.2
+	 * @author Grégory Viguier
+	 *
+	 * @return array The post statuses.
+	 */
+	public function get_post_statuses() {
+		static $statuses;
+
+		if ( function_exists( 'imagify_get_post_statuses' ) ) {
+			return imagify_get_post_statuses();
+		}
+
+		if ( isset( $statuses ) ) {
+			return $statuses;
+		}
+
+		$statuses = array(
+			'inherit' => 'inherit',
+			'private' => 'private',
+		);
+
+		$custom_statuses = get_post_stati( array( 'public' => true ) );
+		unset( $custom_statuses['publish'] );
+
+		if ( $custom_statuses ) {
+			$statuses = array_merge( $statuses, $custom_statuses );
+		}
+
+		return $statuses;
+	}
+
+	/**
+	 * Get the number of attachment where the post meta '_wp_attached_file' can't be worked with.
+	 *
+	 * @since  1.0.2
+	 * @author Grégory Viguier
+	 *
+	 * @return int
+	 */
+	protected function count_medias_with_invalid_wp_metas() {
+		global $wpdb;
+		static $transient_value;
+
+		if ( isset( $transient_value ) ) {
+			return $transient_value;
+		}
+
+		$transient_name  = 'imgt_medias_invalid_wp_metas';
+		$transient_value = imagify_tools_get_site_transient( $transient_name );
+
+		if ( false !== $transient_value ) {
+			return (int) $transient_value;
+		}
+
+		if ( class_exists( 'Imagify_DB', true ) && method_exists( 'Imagify_DB', 'get_required_wp_metadata_where_clause' ) ) {
+			$mime_types      = Imagify_DB::get_mime_types();
+			$statuses        = Imagify_DB::get_post_statuses();
+			$nodata_join     = Imagify_DB::get_required_wp_metadata_join_clause( 'p.ID', false, false );
+			$nodata_where    = Imagify_DB::get_required_wp_metadata_where_clause( array(), false, false );
+			$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
+				"
+				SELECT COUNT( p.ID )
+				FROM $wpdb->posts AS p
+					$nodata_join
+				WHERE p.post_mime_type IN ( $mime_types )
+					AND p.post_type = 'attachment'
+					AND p.post_status IN ( $statuses )
+					$nodata_where"
+			);
+		} else {
+			$mime_types = $this->get_mime_types();
+			$extensions = implode( '|', array_keys( $mime_types ) );
+			$extensions = explode( '|', $extensions );
+			$extensions = "OR ( LOWER( imrwpmt1.meta_value ) NOT LIKE '%." . implode( "' AND LOWER( imrwpmt1.meta_value ) NOT LIKE '%.", $extensions ) . "' )";
+			$mime_types = esc_sql( $mime_types );
+			$mime_types = "'" . implode( "','", $mime_types ) . "'";
+			$statuses   = esc_sql( $this->get_post_statuses() );
+			$statuses   = "'" . implode( "','", $statuses ) . "'";
+
+			$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
+				"
+				SELECT COUNT( p.ID )
+				FROM $wpdb->posts AS p
+				LEFT JOIN $wpdb->postmeta AS imrwpmt1
+					ON ( p.ID = imrwpmt1.post_id AND imrwpmt1.meta_key = '_wp_attached_file' )
+				LEFT JOIN $wpdb->postmeta AS imrwpmt2
+					ON ( p.ID = imrwpmt2.post_id AND imrwpmt2.meta_key = '_wp_attachment_metadata' )
+				WHERE p.post_mime_type IN ( $mime_types )
+					AND p.post_type = 'attachment'
+					AND p.post_status IN ( $statuses )
+					AND ( imrwpmt2.meta_value IS NULL OR imrwpmt1.meta_value IS NULL OR imrwpmt1.meta_value LIKE '%://%' OR imrwpmt1.meta_value LIKE '_:\\\\\%' $extensions )"
+			);
+		}
+
+		imagify_tools_set_site_transient( $transient_name, $transient_value, self::CACHE_DURATION * MINUTE_IN_SECONDS );
+
+		return $transient_value;
+	}
+
+	/**
+	 * Get the number of "custom files" that have no folder.
+	 *
+	 * @since  1.0.2
+	 * @author Grégory Viguier
+	 *
+	 * @return int|bool The number of files. False if the tables are not ready.
+	 */
+	protected function count_orphan_files() {
+		global $wpdb;
+		static $transient_value;
+
+		if ( isset( $transient_value ) ) {
+			return $transient_value;
+		}
+
+		$folders_can_operate = class_exists( 'Imagify_Folders_DB', true ) && Imagify_Folders_DB::get_instance()->can_operate();
+		$files_can_operate   = class_exists( 'Imagify_Files_DB', true ) && Imagify_Files_DB::get_instance()->can_operate();
+
+		if ( ! $folders_can_operate || ! $files_can_operate ) {
+			$transient_value = false;
+			return $transient_value;
+		}
+
+		$transient_name  = 'imgt_orphan_files';
+		$transient_value = imagify_tools_get_site_transient( $transient_name );
+
+		if ( false !== $transient_value ) {
+			return (int) $transient_value;
+		}
+
+		$folders_db      = Imagify_Folders_DB::get_instance();
+		$folders_table   = $folders_db->get_table_name();
+		$folders_key     = $folders_db->get_primary_key();
+		$folders_key_esc = esc_sql( $folders_key );
+
+		$files_db      = Imagify_Files_DB::get_instance();
+		$files_table   = $files_db->get_table_name();
+		$files_key_esc = esc_sql( $files_db->get_primary_key() );
+		$folder_ids    = $wpdb->get_col( "SELECT $folders_key_esc FROM $folders_table" ); // WPCS: unprepared SQL ok.
+
+		if ( $folder_ids ) {
+			$folder_ids = $folders_db->cast_col( $folder_ids, $folders_key );
+			$folder_ids = Imagify_DB::prepare_values_list( $folder_ids );
+
+			$transient_value = (int) $wpdb->get_var( "SELECT COUNT( $files_key_esc ) FROM $files_table WHERE folder_id NOT IN ( $folder_ids )" ); // WPCS: unprepared SQL ok.
+		} else {
+			$transient_value = (int) $wpdb->get_var( "SELECT COUNT( $files_key_esc ) FROM $files_table" ); // WPCS: unprepared SQL ok.
+		}
+
+		imagify_tools_set_site_transient( $transient_name, $transient_value, self::CACHE_DURATION * MINUTE_IN_SECONDS );
+
+		return $transient_value;
 	}
 
 	/**
@@ -447,13 +658,13 @@ class IMGT_Admin_Model_Main {
 	 * @since  1.0
 	 * @author Grégory Viguier
 	 *
-	 * @return object|null
+	 * @return object|string
 	 */
 	protected function get_imagify_user() {
 		static $imagify_user;
 
 		if ( ! function_exists( 'get_imagify_user' ) ) {
-			return null;
+			return __( 'Needs Imagify to be installed', 'imagify-tools' );
 		}
 
 		if ( isset( $imagify_user ) ) {
@@ -471,21 +682,20 @@ class IMGT_Admin_Model_Main {
 	}
 
 	/**
-	 * Get the link to clear the Imagify user cache (delete the transient).
+	 * Get the link to clear a cache (delete the transient).
 	 *
 	 * @since  1.0
 	 * @author Grégory Viguier
 	 *
+	 * @param  string $transient_name Name of the transient that stores the data.
+	 * @param  string $clear_action   Admin post action.
+	 * @param  array  $args           Parameters to add to the link URL.
 	 * @return string
 	 */
-	protected function get_clear_imagify_user_cache_link() {
-		if ( ! $this->get_imagify_user() ) {
-			return '';
-		}
+	protected function get_clear_cache_link( $transient_name, $clear_action, $args = array() ) {
+		$link = ' <a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( $this->get_clear_cache_url( $clear_action, $args ) ) . '">' . __( 'Clear cache', 'imagify-tools' ) . '</a>';
 
-		$link = ' <a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( $this->get_clear_imagify_user_cache_url() ) . '">' . __( 'Clear cache', 'imagify-tools' ) . '</a>';
-
-		$transient_timeout = $this->get_transient_timeout( 'imgt_user' );
+		$transient_timeout = $this->get_transient_timeout( $transient_name );
 		$current_time      = time();
 
 		if ( ! $transient_timeout || $transient_timeout < $current_time ) {
@@ -500,17 +710,20 @@ class IMGT_Admin_Model_Main {
 	}
 
 	/**
-	 * Get the URL to clear the Imagify user cache (delete the transient).
+	 * Get the URL to clear a cache (delete the transient).
 	 *
 	 * @since  1.0
 	 * @author Grégory Viguier
 	 *
+	 * @param  string $action Admin post action.
+	 * @param  array  $args   Parameters to add to the link URL.
 	 * @return string
 	 */
-	protected function get_clear_imagify_user_cache_url() {
-		$action = IMGT_Admin_Post::get_action( 'clear_imagify_user_cache' );
+	protected function get_clear_cache_url( $action, $args = array() ) {
+		$action = IMGT_Admin_Post::get_action( $action );
+		$url    = wp_nonce_url( admin_url( 'admin-post.php?action=' . $action ), $action );
 
-		return wp_nonce_url( admin_url( 'admin-post.php?action=' . $action ), $action );
+		return $args ? add_query_arg( $args, $url ) : $url;
 	}
 
 	/**

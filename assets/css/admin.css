@@ -213,6 +213,9 @@ button.imgt-virgin {
 	color: #65727C;
 	opacity: .9;
 }
+.row-error .imgt-small-info {
+	color: #fff;
+}
 
 /**
  * === Tables

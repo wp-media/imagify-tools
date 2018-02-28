@@ -118,10 +118,13 @@ class Imagify_Tools {
 		IMGT_Logs::get_instance()->init();
 		IMGT_Hooks::get_instance()->init();
 
-		if ( is_admin() && ! wp_doing_ajax() ) {
-			IMGT_Admin_Pages::get_instance()->init();
+		if ( is_admin() ) {
 			IMGT_Admin_Post::get_instance()->init();
-			IMGT_Attachments_Metas::get_instance()->init();
+
+			if ( ! wp_doing_ajax() ) {
+				IMGT_Admin_Pages::get_instance()->init();
+				IMGT_Attachments_Metas::get_instance()->init();
+			}
 		}
 
 		/**

@@ -15,7 +15,7 @@ class IMGT_Attachments_Metas {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * Meta box ID.
@@ -116,6 +116,19 @@ class IMGT_Attachments_Metas {
 			$metas[ $meta_name ] = array_map( 'maybe_unserialize', $values );
 		}
 
+		// File infos metabox.
+		add_meta_box(
+			self::METABOX_ID . '-file-infos',
+			__( 'File infos', 'imagify-tools' ),
+			array( $this, 'print_meta_box_file_infos' ),
+			'attachment',
+			'normal',
+			'high',
+			$metas
+		);
+
+		add_filter( 'postbox_classes_attachment_' . self::METABOX_ID . '-file-infos', array( $this, 'add_meta_box_class' ) );
+
 		// Group metas in up to 4 meta boxes.
 		$meta_groups = array(
 			'wp' => array(
@@ -199,6 +212,95 @@ class IMGT_Attachments_Metas {
 	}
 
 	/**
+	 * Print the meta box content for the file infos.
+	 *
+	 * @since  1.0.2
+	 * @author Grégory Viguier
+	 *
+	 * @param object $post WP_Post object of the current Attachment post.
+	 * @param array  $data An array of data related to the meta box.
+	 */
+	public function print_meta_box_file_infos( $post, $data ) {
+		$path = get_attached_file( $post->ID );
+
+		if ( ! $path ) {
+			echo '<div class="row-error">' . __( 'Cannot retrieve file path.', 'imagify-tools' ) . '</div>';
+			return;
+		}
+
+		$path   = wp_normalize_path( $path );
+		$exists = false;
+
+		/**
+		 * Dimensions.
+		 */
+		if ( file_exists( $path ) ) {
+			$exists  = true;
+			$imgsize = getimagesize( $path );
+			$width   = $imgsize ? (int) $imgsize[0] : 0;
+			$height  = $imgsize ? (int) $imgsize[1] : 0;
+		}
+
+		/**
+		 * Weight.
+		 */
+		if ( $exists ) {
+			$bytes = @filesize( $path );
+			$bytes = $bytes ? @size_format( $bytes, $decimals ) : '0';
+			$bytes = str_replace( ' ', ' ', $bytes );
+		}
+
+		/**
+		 * Thumbnails.
+		 */
+		$sizes       = ! empty( $data['args']['_wp_attachment_metadata'][0]['sizes'] ) && is_array( $data['args']['_wp_attachment_metadata'][0]['sizes'] ) ? $data['args']['_wp_attachment_metadata'][0]['sizes'] : array();
+		$thumb_error = true;
+
+		if ( $sizes ) {
+			$thumb_error      = false;
+			$original_dirname = trailingslashit( dirname( $path ) );
+
+			foreach ( $sizes as $size_name => $size_data ) {
+				if ( file_exists( $original_dirname . $size_data['file'] ) ) {
+					/* translators: 1 and 2 are whatever you like them to be. Even more. */
+					$sizes[ $size_name ] = esc_html( sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Exists', 'File', 'imagify-tools' ), $size_name ) );
+				} else {
+					$thumb_error = true;
+					/* translators: 1 and 2 are whatever you like them to be. Even more. */
+					$sizes[ $size_name ] = esc_html( sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Does not exist', 'File', 'imagify-tools' ), $size_name ) );
+				}
+			}
+		}
+
+		/**
+		 * Backup file.
+		 */
+		$upload_basedir = wp_upload_dir();
+		$upload_basedir = trailingslashit( wp_normalize_path( $upload_basedir['basedir'] ) );
+
+		$backup_dir = $upload_basedir . 'backup/';
+		/** This filter is documented in Imagify. */
+		$backup_dir = apply_filters( 'imagify_backup_directory', $backup_dir );
+		$backup_dir = trailingslashit( wp_normalize_path( $backup_dir ) );
+
+		$backup_path = $upload_basedir ? str_replace( $upload_basedir, $backup_dir, $path ) : '';
+		$has_backup  = file_exists( $backup_path );
+
+		/**
+		 * Print out.
+		 */
+		echo '<table><tbody>';
+
+		echo '<tr' . ( $exists ? '' : ' class="row-error"' ) . '><th>' . __( 'Path', 'imagify-tools' ) . '</th><td>' . esc_html( $path ) . ' (' . ( $exists ? __( 'file exists', 'imagify-tools' ) : __( 'file does not exist', 'imagify-tools' ) ) . ')</td></tr>';
+		echo $exists ? '<tr' . ( $imgsize ? '' : ' class="row-error"' ) . '><th>' . __( 'Dimensions', 'imagify-tools' ) . '</th><td>' . $width . '&nbsp;&times;&nbsp;' . $height . '</td></tr>' : '';
+		echo $exists ? '<tr' . ( $bytes ? '' : ' class="row-error"' ) . '><th>' . __( 'Weight', 'imagify-tools' ) . '</th><td>' . esc_html( $bytes ) . '</td></tr>' : '';
+		echo '<tr' . ( ! $thumb_error ? '' : ' class="row-error"' ) . '><th>' . __( 'Thumbnails', 'imagify-tools' ) . '</th><td>' . implode( '<br/>', $sizes ) . '</td></tr>';
+		echo '<tr' . ( $has_backup ? '' : ' class="row-error"' ) . '><th>' . __( 'Has backup', 'imagify-tools' ) . '</th><td>' . esc_html( $has_backup ? __( 'Yes', 'imagify-tools' ) : __( 'No', 'imagify-tools' ) ) . '</td></tr>';
+
+		echo '</tbody></table>';
+	}
+
+	/**
 	 * Print the meta box content.
 	 *
 	 * @since  1.0
@@ -220,24 +322,31 @@ class IMGT_Attachments_Metas {
 				continue;
 			}
 
-			$nbr_metas = count( $meta_values );
+			$multiple_metas = count( $meta_values ) > 1;
 
 			echo '<tr>';
+			echo '<th>' . $meta_name . '</th>';
+			echo '<td>';
 
-			echo '<th' . ( $nbr_metas > 1 ? ' rowspan="' . $nbr_metas . '"' : '' ) . '>' . $meta_name . '</th>';
+			$separator = '';
 
 			foreach ( $meta_values as $meta_value ) {
-				echo '<td><pre>';
-
 				if ( is_numeric( $meta_value ) || is_null( $meta_value ) || is_bool( $meta_value ) ) {
+					ob_start();
 					call_user_func( 'var_dump', $meta_value );
+					$meta_value = trim( strip_tags( ob_get_clean() ) );
+					$meta_value = preg_replace( '@^.+\.php:\d+:@', '', $meta_value );
+					$meta_value = preg_replace( '@\(length=\d+\)$@', '<em><small>\0</small></em>', $meta_value );
 				} else {
-					echo esc_html( call_user_func( 'print_r', $meta_value, 1 ) );
+					$meta_value = esc_html( call_user_func( 'print_r', $meta_value, 1 ) );
 				}
 
-				echo '</pre></td>';
+				echo $separator;
+				echo '<pre>' . $meta_value . '</pre>';
+				$separator = $multiple_metas ? '<hr/>' : '';
 			}
 
+			echo '</td>';
 			echo '</tr>';
 		}
 
