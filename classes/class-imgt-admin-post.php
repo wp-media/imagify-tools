@@ -106,6 +106,9 @@ class IMGT_Admin_Post {
 		// Clear invalid metas cache.
 		add_action( 'admin_post_' . self::get_action( 'clear_medias_with_invalid_wp_metas_cache' ), array( $this, 'clear_medias_with_invalid_wp_metas_cache_cb' ) );
 
+		// Clear orphan files cache.
+		add_action( 'admin_post_' . self::get_action( 'clear_orphan_files_cache' ),                 array( $this, 'clear_orphan_files_cache_cb' ) );
+
 		// Fix NGG table engine.
 		add_action( 'admin_post_' . self::get_action( 'fix_ngg_table_engine' ),                     array( $this, 'fix_ngg_table_engine_cb' ) );
 
@@ -315,6 +318,20 @@ class IMGT_Admin_Post {
 		imagify_tools_delete_site_transient( 'imgt_medias_invalid_wp_metas' );
 
 		$this->redirect( 'imagify_medias_with_invalid_wp_metas_cache_cleared', __( 'Cache for medias with invalid WP metas cleared.', 'imagify-tools' ) );
+	}
+
+	/**
+	 * Admin post callback that allows to clear the cache used for orphan files (Infos page).
+	 *
+	 * @since  1.0.2
+	 * @author Grégory Viguier
+	 */
+	public function clear_orphan_files_cache_cb() {
+		$this->check_nonce_and_user( self::get_action( 'clear_orphan_files_cache' ) );
+
+		imagify_tools_delete_site_transient( 'imgt_orphan_files' );
+
+		$this->redirect( 'imagify_orphan_files_cache_cleared', __( 'Cache for orphan files cleared.', 'imagify-tools' ) );
 	}
 
 	/**
