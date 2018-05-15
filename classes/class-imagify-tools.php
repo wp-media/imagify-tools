@@ -120,6 +120,7 @@ class Imagify_Tools {
 
 		if ( is_admin() ) {
 			IMGT_Admin_Post::get_instance()->init();
+			IMGT_Nextgen_Gallery::get_instance()->init();
 
 			if ( ! wp_doing_ajax() ) {
 				IMGT_Admin_Pages::get_instance()->init();
@@ -250,6 +251,7 @@ class Imagify_Tools {
 			'IMGT_Logs'              => 1,
 			'IMGT_Logs_List_Table'   => 1,
 			'IMGT_Log'               => 1,
+			'IMGT_Nextgen_Gallery'   => 1,
 		);
 
 		if ( isset( $classes[ $class ] ) ) {

@@ -1,0 +1,116 @@
+<?php
+defined( 'ABSPATH' ) || die( 'Cheatin\' uh?' );
+
+/**
+ * Class that prints Imagify data related to NGG.
+ *
+ * @package Imagify Tools
+ * @since   1.0.3
+ * @author  Grégory Viguier
+ */
+class IMGT_Nextgen_Gallery {
+
+	/**
+	 * Class version.
+	 *
+	 * @var    string
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 */
+	const VERSION = '1.0';
+
+	/**
+	 * The single instance of the class.
+	 *
+	 * @var    object
+	 * @access protected
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 */
+	protected static $_instance;
+
+	/**
+	 * The constructor.
+	 *
+	 * @access protected
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 */
+	protected function __construct() {}
+
+	/**
+	 * Get the main Instance.
+	 *
+	 * @access public
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 *
+	 * @return object Main instance.
+	 */
+	public static function get_instance() {
+		if ( ! isset( self::$_instance ) ) {
+			self::$_instance = new self();
+		}
+
+		return self::$_instance;
+	}
+
+	/**
+	 * Delete the main Instance.
+	 *
+	 * @access public
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 */
+	public static function delete_instance() {
+		unset( self::$_instance );
+	}
+
+	/**
+	 * Class init.
+	 *
+	 * @access public
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 */
+	public function init() {
+		if ( current_user_can( imagify_tools_get_capacity() ) ) {
+			add_filter( 'ngg_manage_images_number_of_columns', array( $this, 'manage_images_number_of_columns' ) );
+		}
+	}
+
+	/**
+	 * Add "Imagify" column in admin.php?page=nggallery-manage-gallery.
+	 *
+	 * @access public
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 *
+	 * @param  int $count Number of columns.
+	 * @return int Incremented number of columns.
+	 */
+	function manage_images_number_of_columns( $count ) {
+		add_filter( 'ngg_manage_images_column_7_content', array( $this, 'manage_media_custom_column' ), 20, 2 );
+		return $count;
+	}
+
+	/**
+	 * Get the column content.
+	 *
+	 * @access public
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 *
+	 * @param  string $output The column content.
+	 * @param  object $image  An NGG Image object.
+	 * @return string
+	 */
+	function manage_media_custom_column( $output, $image ) {
+		$attachment = new Imagify_NGG_Attachment( $image );
+
+		$output .= '<strong>' . __( 'Raw data:', 'imagify-tools' ) . '</strong>';
+		$output .= '<div style="overflow-x: auto; margin-bottom: 200px;"><pre>' . call_user_func( 'print_r', $attachment->get_row(), 1 ) . '</pre></div>';
+
+		return $output;
+	}
+}
