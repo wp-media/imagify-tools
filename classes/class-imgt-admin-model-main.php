@@ -640,10 +640,18 @@ class IMGT_Admin_Model_Main {
 		}
 
 		if ( class_exists( 'Imagify_DB', true ) && method_exists( 'Imagify_DB', 'get_required_wp_metadata_where_clause' ) ) {
-			$mime_types      = Imagify_DB::get_mime_types();
-			$statuses        = Imagify_DB::get_post_statuses();
-			$nodata_join     = Imagify_DB::get_required_wp_metadata_join_clause( 'p.ID', false, false );
-			$nodata_where    = Imagify_DB::get_required_wp_metadata_where_clause( array(), false, false );
+			$mime_types  = Imagify_DB::get_mime_types();
+			$statuses    = Imagify_DB::get_post_statuses();
+			$nodata_join = Imagify_DB::get_required_wp_metadata_join_clause( 'p.ID', false, false );
+
+			if ( version_compare( IMAGIFY_VERSION, '1.7.1.2' ) < 0 ) {
+				$nodata_where = Imagify_DB::get_required_wp_metadata_where_clause( array(), false, false );
+			} else {
+				$nodata_where = Imagify_DB::get_required_wp_metadata_where_clause( array(
+					'matching' => false,
+					'test'     => false,
+				) );
+			}
 			$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
 				"
 				SELECT COUNT( p.ID )
