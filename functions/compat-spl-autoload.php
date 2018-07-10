@@ -8,7 +8,8 @@
  * @package PHP
  * @access private
  */
-defined( 'ABSPATH' ) || die( 'Cheatin\' uh?' );
+
+ defined( 'ABSPATH' ) || die( 'Cheatin\' uh?' );
 
 if ( ! function_exists( 'spl_autoload_register' ) ) :
 	$_wp_spl_autoloaders = array();
