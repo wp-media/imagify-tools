@@ -579,6 +579,7 @@ class IMGT_Admin_Model_Main {
 			'jpg|jpeg|jpe' => 'image/jpeg',
 			'png'          => 'image/png',
 			'gif'          => 'image/gif',
+			'pdf'          => 'application/pdf',
 		);
 	}
 
