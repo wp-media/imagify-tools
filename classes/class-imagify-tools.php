@@ -211,11 +211,13 @@ class Imagify_Tools {
 		self::$plugin_file = $plugin_file;
 		self::$plugin_dir  = wp_normalize_path( IMAGIFY_TOOLS_PATH );
 
-		arsort( $wp_plugin_paths );
+		if ( $wp_plugin_paths ) {
+			arsort( $wp_plugin_paths );
 
-		foreach ( $wp_plugin_paths as $dir => $realdir ) {
-			if ( strpos( self::$plugin_file, $realdir ) === 0 ) {
-				self::$plugin_file = $dir . substr( self::$plugin_file, strlen( $realdir ) );
+			foreach ( $wp_plugin_paths as $dir => $realdir ) {
+				if ( strpos( self::$plugin_file, $realdir ) === 0 ) {
+					self::$plugin_file = $dir . substr( self::$plugin_file, strlen( $realdir ) );
+				}
 			}
 		}
 
