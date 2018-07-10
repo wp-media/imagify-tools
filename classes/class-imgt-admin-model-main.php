@@ -382,6 +382,19 @@ class IMGT_Admin_Model_Main {
 			$ngg_table_engine_fix_link = '<br/> <a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( $ngg_table_engine_fix_link ) . '">' . __( 'Fix it', 'imagify-tools' ) . '</a>';
 		}
 
+		/**
+		 * $_SERVER.
+		 */
+		$server_data = $_SERVER;
+
+		if ( $server_data && is_array( $server_data ) ) {
+			foreach ( $server_data as $k => $v ) {
+				if ( strpos( $k, 'HTTP_' ) === 0 ) {
+					unset( $server_data[ $k ] );
+				}
+			}
+		}
+
 		$this->add_data_section( __( 'Various Tests and Values', 'imagify-tools' ), array(
 			array(
 				'label'     => __( 'Your IP address', 'imagify-tools' ),
@@ -434,7 +447,7 @@ class IMGT_Admin_Model_Main {
 			),
 			array(
 				'label'     => '$_SERVER',
-				'value'     => $this->sanitize( $_SERVER ),
+				'value'     => $this->sanitize( $server_data ),
 			),
 		) );
 	}
