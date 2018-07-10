@@ -360,7 +360,7 @@ class IMGT_Admin_Model_Main {
 	 * @author Grégory Viguier
 	 */
 	public function add_various_section() {
-		global $wpdb, $wp_object_cache;
+		global $wpdb, $wp_object_cache, $wp_version;
 
 		/**
 		 * Table NGG.
@@ -407,6 +407,11 @@ class IMGT_Admin_Model_Main {
 			array(
 				'label'     => __( 'PHP version', 'imagify-tools' ),
 				'value'     => PHP_VERSION,
+			),
+			array(
+				'label'     => __( 'WP version', 'imagify-tools' ),
+				'value'     => $wp_version,
+				'is_error'  => version_compare( $wp_version, '4.0' ) < 0,
 			),
 			array(
 				/* translators: 1 and 2 are constant names. */
