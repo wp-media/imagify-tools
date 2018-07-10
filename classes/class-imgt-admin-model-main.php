@@ -46,6 +46,7 @@ class IMGT_Admin_Model_Main {
 	 */
 	public function __construct() {
 		$this->add_filesystem_section();
+		$this->add_image_editor_section();
 		$this->add_curl_section();
 		$this->add_requests_section();
 		$this->add_files_section();
@@ -90,23 +91,6 @@ class IMGT_Admin_Model_Main {
 		$chmod_dir  = fileperms( ABSPATH ) & 0777 | 0755;
 		$chmod_file = fileperms( ABSPATH . 'index.php' ) & 0777 | 0644;
 		$backup_dir = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
-
-		/**
-		 * Image editor.
-		 */
-		$image_path = admin_url( 'images/arrows.png' );
-		$image_path = str_replace( site_url( '/' ), ABSPATH, $image_path );
-
-		if ( file_exists( $image_path ) ) {
-			$image_editor = wp_get_image_editor( $image_path );
-
-			if ( ! is_wp_error( $image_editor ) ) {
-				$image_editor = get_class( $image_editor );
-				$image_editor = str_replace( 'WP_Image_Editor_', '', $image_editor );
-			}
-		} else {
-			$image_editor = new WP_Error( 'image_not_found', __( 'Image not found.', 'imagify-tools' ) );
-		}
 
 		$imagify_settings = get_site_option( 'imagify_settings' );
 
@@ -189,12 +173,37 @@ class IMGT_Admin_Model_Main {
 				/* translators: %s is a value. */
 				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
 			),
+		) );
+	}
+
+	/**
+	 * Add a section related to the image editor.
+	 *
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 */
+	public function add_image_editor_section() {
+		$image_path = admin_url( 'images/arrows.png' );
+		$image_path = str_replace( site_url( '/' ), ABSPATH, $image_path );
+
+		if ( file_exists( $image_path ) ) {
+			$image_editor = wp_get_image_editor( $image_path );
+
+			if ( ! is_wp_error( $image_editor ) ) {
+				$image_editor = get_class( $image_editor );
+				$image_editor = str_replace( 'WP_Image_Editor_', '', $image_editor );
+			}
+		} else {
+			$image_editor = new WP_Error( 'image_not_found', __( 'Image not found.', 'imagify-tools' ) );
+		}
+
+		$this->add_data_section( __( 'Image Editor Component', 'imagify-tools' ), array(
 			array(
-				'label'     => __( 'Image Editor Component', 'imagify-tools' ),
+				'label'     => __( 'Image Editor used', 'imagify-tools' ),
 				'value'     => is_wp_error( $image_editor ) ? $image_editor->get_error_message() : $image_editor,
 				'is_error'  => is_wp_error( $image_editor ),
 				/* translators: 1 and 2 are values. */
-				'more_info' => sprintf( __( 'Should be %1$s or %2$s.', 'imagify-tools' ), '<code>Imagick</code>', '<code>GD</code>' ),
+				'more_info' => sprintf( __( 'Should be %1$s or %2$s most of the time.', 'imagify-tools' ), '<code>Imagick</code>', '<code>GD</code>' ),
 			),
 		) );
 	}
