@@ -15,7 +15,7 @@ class IMGT_Admin_Model_Main {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0.1';
+	const VERSION = '1.0.2';
 
 	/**
 	 * Info cache duration in minutes.
@@ -120,6 +120,13 @@ class IMGT_Admin_Model_Main {
 				'value'     => (bool) $this->are_requests_blocked( 'https://app.imagify.io/api/version/' ),
 				'compare'   => false,
 				'more_info' => $this->are_requests_blocked( 'https://app.imagify.io/api/version/' ) . $this->get_clear_request_cache_link( 'https://app.imagify.io/api/version/' ),
+			),
+			array(
+				/* translators: %s is a URL. */
+				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>s2-amz-par.imagify.io</code>' ),
+				'value'     => (bool) $this->are_requests_blocked( 'https://s2-amz-par.imagify.io/wpm.png' ),
+				'compare'   => false,
+				'more_info' => $this->are_requests_blocked( 'https://s2-amz-par.imagify.io/wpm.png' ) . $this->get_clear_request_cache_link( 'https://s2-amz-par.imagify.io/wpm.png' ),
 			),
 			array(
 				/* translators: %s is a URL. */
