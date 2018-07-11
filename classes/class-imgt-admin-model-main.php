@@ -770,7 +770,7 @@ class IMGT_Admin_Model_Main {
 		$args = array(
 			'path'       => $image_path,
 			'mime_types' => $this->get_mime_types( 'image' ),
-			'methods'    => $this->get_editor_methods(),
+			'methods'    => $this->get_image_editor_methods(),
 		);
 
 		/** This filter is documented in /wp-includes/media.php. */
