@@ -29,6 +29,7 @@
 		<exclude name="WordPress.VIP.RestrictedVariables.cache_constraints___COOKIE"/>
 		<exclude name="WordPress.VIP.RestrictedVariables.user_meta__wpdb__users"/>
 		<exclude name="WordPress.VIP.SuperGlobalInputUsage.AccessDetected"/>
+		<exclude name="WordPress.WP.AlternativeFunctions.curl_curl_version"/>
 		<exclude name="WordPress.WP.CapitalPDangit.Misspelled"/>
 		<exclude name="WordPress.XSS.EscapeOutput"/>
 	</rule>

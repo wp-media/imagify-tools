@@ -46,6 +46,7 @@ class IMGT_Admin_Model_Main {
 	 */
 	public function __construct() {
 		$this->add_filesystem_section();
+		$this->add_curl_section();
 		$this->add_requests_section();
 		$this->add_files_section();
 		$this->add_various_section();
@@ -199,6 +200,43 @@ class IMGT_Admin_Model_Main {
 	}
 
 	/**
+	 * Add a section related to cURL.
+	 *
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 */
+	public function add_curl_section() {
+		$fields = array(
+			array(
+				'label'     => __( 'Extension loaded', 'imagify-tools' ),
+				'value'     => in_array( 'curl', get_loaded_extensions(), true ),
+				'compare'   => true,
+			),
+			array(
+				/* translators: %s is a function name. */
+				'label'     => sprintf( __( '%s exists', 'imagify-tools' ), '<code>curl_init()</code>' ),
+				'value'     => function_exists( 'curl_init' ),
+				'compare'   => true,
+			),
+			array(
+				/* translators: %s is a function name. */
+				'label'     => sprintf( __( '%s exists', 'imagify-tools' ), '<code>curl_exec()</code>' ),
+				'value'     => function_exists( 'curl_exec' ),
+				'compare'   => true,
+			),
+		);
+
+		if ( function_exists( 'curl_version' ) ) {
+			$fields[] = array(
+				'label'     => '<code>curl_version()</code>',
+				'value'     => curl_version(),
+			);
+		}
+
+		$this->add_data_section( 'cURL', $fields );
+	}
+
+	/**
 	 * Add a section related to requests.
 	 *
 	 * @since  1.0.3
@@ -211,9 +249,8 @@ class IMGT_Admin_Model_Main {
 		$post_url      = admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'test' ) );
 		$requests      = array(
 			array(
-				'label'     => __( 'cURL enabled', 'imagify-tools' ),
-				'value'     => function_exists( 'curl_init' ) && function_exists( 'curl_exec' ),
-				'compare'   => true,
+				'label'     => '',
+				'value'     => '',
 				'more_info' => $blocking_link,
 			),
 			array(
@@ -352,6 +389,19 @@ class IMGT_Admin_Model_Main {
 			$ngg_table_engine_fix_link = '<br/> <a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( $ngg_table_engine_fix_link ) . '">' . __( 'Fix it', 'imagify-tools' ) . '</a>';
 		}
 
+		/**
+		 * $_SERVER.
+		 */
+		$server_data = $_SERVER;
+
+		if ( $server_data && is_array( $server_data ) ) {
+			foreach ( $server_data as $k => $v ) {
+				if ( strpos( $k, 'HTTP_' ) === 0 ) {
+					unset( $server_data[ $k ] );
+				}
+			}
+		}
+
 		$this->add_data_section( __( 'Various Tests and Values', 'imagify-tools' ), array(
 			array(
 				'label'     => __( 'Your IP address', 'imagify-tools' ),
@@ -404,7 +454,7 @@ class IMGT_Admin_Model_Main {
 			),
 			array(
 				'label'     => '$_SERVER',
-				'value'     => $this->sanitize( $_SERVER ),
+				'value'     => $this->sanitize( $server_data ),
 			),
 		) );
 	}

@@ -36,6 +36,24 @@ defined( 'ABSPATH' ) || die( 'Cheatin\' uh?' );
 
 				if ( is_bool( $test['value'] ) ) {
 					$value = true === $test['value'] ? __( 'Yes', 'imagify-tools' ) : __( 'No', 'imagify-tools' );
+				} elseif ( $test['value'] && is_array( $test['value'] ) && ! is_numeric( key( $test['value'] ) ) ) {
+					$value = array();
+
+					foreach ( $test['value'] as $k => $v ) {
+						$kv = esc_html( $k ) . '</th><td>';
+
+						if ( $k && is_array( $v ) && is_numeric( key( $v ) ) ) {
+								$kv .= '<pre>' . esc_html( implode( ', ', $v ) ) . '</pre>';
+						} else {
+							$kv .= '<pre>' . esc_html( call_user_func( 'print_r', $v, 1 ) ) . '</pre>';
+						}
+
+						$value[] = $kv;
+					}
+
+					sort( $value );
+
+					$value = '<table><tbody><tr><th>' . implode( "</td></tr>\n<tr><th>", $value ) . '</td></tr></tbody></table>';
 				} else {
 					$value = '<pre>' . esc_html( call_user_func( 'print_r', $test['value'], 1 ) ) . '</pre>';
 				}
