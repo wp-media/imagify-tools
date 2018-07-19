@@ -131,7 +131,7 @@ class IMGT_Attachments_Metas {
 
 		// Group metas in up to 4 meta boxes.
 		$meta_groups = array(
-			'wp' => array(
+			'wp'      => array(
 				'title'      => _x( 'Mandatory WP metas', 'attachment meta data', 'imagify-tools' ),
 				'skip_empty' => false,
 				'required'   => array(
@@ -140,22 +140,22 @@ class IMGT_Attachments_Metas {
 				),
 			),
 			'imagify' => array(
-				'title'      => _x( 'Imagify metas', 'attachment meta data', 'imagify-tools' ),
-				'required'   => array(
+				'title'    => _x( 'Imagify metas', 'attachment meta data', 'imagify-tools' ),
+				'required' => array(
 					'_imagify_status'             => 1,
 					'_imagify_optimization_level' => 1,
 					'_imagify_data'               => 1,
 				),
 			),
-			's3' => array(
-				'title'      => _x( 'Amazon S3 metas', 'attachment meta data', 'imagify-tools' ),
-				'required'   => array(
+			's3'      => array(
+				'title'    => _x( 'Amazon S3 metas', 'attachment meta data', 'imagify-tools' ),
+				'required' => array(
 					'wpos3_filesize_total' => 1,
 					'amazonS3_info'        => 1,
 				),
 			),
-			'other' => array(
-				'title'      => _x( 'Other metas', 'attachment meta data', 'imagify-tools' ),
+			'other'   => array(
+				'title' => _x( 'Other metas', 'attachment meta data', 'imagify-tools' ),
 			),
 		);
 

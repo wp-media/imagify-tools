@@ -3,16 +3,16 @@
 /**
  * ==== TABLE OF COLORS ===
  *
- * Red			: #DF3883;#
- * RedDark		: #C51162;#
+ * Red          : #DF3883;#
+ * RedDark      : #C51162;#
  * Blue         : #40B1D0;#
  * BlueDark     : #338EA6;#
- * Green		: #8BC34A;#
- * GreenDark	: #6F9C3B;#
- * Dark			: #1F2332;#
- * GrayLight	: #F2F5F7;#
- * GrayMedium	: #65727C;#
- * GrayDark		: #2E3243;#
+ * Green        : #8BC34A;#
+ * GreenDark    : #6F9C3B;#
+ * Dark         : #1F2332;#
+ * GrayLight    : #F2F5F7;#
+ * GrayMedium   : #65727C;#
+ * GrayDark     : #2E3243;#
  *
  */
 
@@ -275,13 +275,30 @@ button.imgt-virgin {
 	border-top: 0;
 }
 
-.imgt-wrap tr + tr th,
-.imgt-wrap tr + tr td {
+.imgt-wrap tr + tr > th,
+.imgt-wrap tr + tr > td {
 	border-top: 1px solid #e5e5e5;
 }
-.imgt-wrap .row-error th,
-.imgt-wrap .row-error td {
+.imgt-wrap .row-error > th,
+.imgt-wrap .row-error > td {
 	color: #fff;
 	font-weight: bold;
 	background: #C51162;
+}
+.imgt-wrap .widefat table {
+	width: 100%;
+	table-layout: fixed;
+}
+.imgt-wrap .widefat table th,
+.imgt-wrap .widefat table td {
+	padding-left: 0;
+	padding-right: 0;
+}
+.imgt-wrap .widefat table tr:first-child th,
+.imgt-wrap .widefat table tr:first-child td {
+	padding-top: 0;
+}
+.imgt-wrap .widefat table tr:last-child th,
+.imgt-wrap .widefat table tr:last-child td {
+	padding-bottom: 0;
 }

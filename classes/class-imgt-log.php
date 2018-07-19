@@ -108,11 +108,11 @@ class IMGT_Log {
 		}
 
 		$args = array_merge( array(
-			'time'       => '',
-			'order'      => 0,
-			'type'       => '',
-			'target'     => '',
-			'data'       => array(),
+			'time'   => '',
+			'order'  => 0,
+			'type'   => '',
+			'target' => '',
+			'data'   => array(),
 		), $args );
 
 		// Extract the subtype from the type.
@@ -278,6 +278,7 @@ class IMGT_Log {
 					}
 					// Replace the `style` attributes by `class` attributes.
 					$data = preg_replace( '@<span style="color: #([0-9A-F]+)">@', '<span class="imgt-code-color imgt-code-color-$1">', $data );
+
 					$this->data[ $key ] = "<pre><code>$data</code></pre>";
 				} elseif ( strlen( $data ) > 50 ) {
 					// 50 seems to be a good limit between short and long code.

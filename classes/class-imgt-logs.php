@@ -216,7 +216,10 @@ class IMGT_Logs {
 	 * @param (mixed)  $value     The option new value.
 	 */
 	public function maybe_log_updated_option( $option, $old_value, $value ) {
-		$this->maybe_log_option( $option, array( 'new' => $value, 'old' => $old_value ) );
+		$this->maybe_log_option( $option, array(
+			'new' => $value,
+			'old' => $old_value,
+		) );
 	}
 
 	/**
@@ -243,7 +246,10 @@ class IMGT_Logs {
 	 * @param (mixed)  $old_value The option old value.
 	 */
 	public function maybe_log_updated_network_option( $option, $value, $old_value ) {
-		$this->maybe_log_option( $option, array( 'new' => $value, 'old' => $old_value ), true );
+		$this->maybe_log_option( $option, array(
+			'new' => $value,
+			'old' => $old_value,
+		), true );
 	}
 
 	/**
@@ -415,12 +421,12 @@ class IMGT_Logs {
 		);
 
 		register_post_type( self::POST_TYPE, array(
-			'labels'              => $post_type_labels,
-			'capability_type'     => self::POST_TYPE,
-			'supports'            => false,
-			'rewrite'             => false,
-			'map_meta_cap'        => true,
-			'capabilities'        => array(
+			'labels'          => $post_type_labels,
+			'capability_type' => self::POST_TYPE,
+			'supports'        => false,
+			'rewrite'         => false,
+			'map_meta_cap'    => true,
+			'capabilities'    => array(
 				'read' => 'read_' . self::POST_TYPE . 's',
 			),
 		) );
@@ -583,7 +589,10 @@ class IMGT_Logs {
 
 			// It's too soon, we need to delay the log creation.
 			if ( ! $this->init_done ) {
-				$delayed_logs[] = array( 'args' => $args, 'meta' => $new_log );
+				$delayed_logs[] = array(
+					'args' => $args,
+					'meta' => $new_log,
+				);
 				++$added;
 			}
 			// Create the Log.
@@ -714,6 +723,7 @@ class IMGT_Logs {
 			'fields'      => 'ID',
 			'count_total' => false,
 		) );
+
 		$user_ids = array_intersect( $user_ids, $administrators );
 
 		return $user_ids ? (int) reset( $user_ids ) : 0;

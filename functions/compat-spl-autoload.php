@@ -8,6 +8,7 @@
  * @package PHP
  * @access private
  */
+
 defined( 'ABSPATH' ) || die( 'Cheatin\' uh?' );
 
 if ( ! function_exists( 'spl_autoload_register' ) ) :

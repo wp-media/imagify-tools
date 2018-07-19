@@ -10,6 +10,7 @@
 
 	<rule ref="WordPress">
 		<!-- https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/ -->
+		<exclude name="Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma"/>
 		<exclude name="Generic.PHP.NoSilencedErrors.Discouraged"/>
 		<exclude name="Squiz.Commenting.FileComment.Missing"/>
 		<exclude name="Squiz.Commenting.FileComment.MissingPackageTag"/>
@@ -29,6 +30,7 @@
 		<exclude name="WordPress.VIP.RestrictedVariables.cache_constraints___COOKIE"/>
 		<exclude name="WordPress.VIP.RestrictedVariables.user_meta__wpdb__users"/>
 		<exclude name="WordPress.VIP.SuperGlobalInputUsage.AccessDetected"/>
+		<exclude name="WordPress.WP.AlternativeFunctions.curl_curl_version"/>
 		<exclude name="WordPress.WP.CapitalPDangit.Misspelled"/>
 		<exclude name="WordPress.XSS.EscapeOutput"/>
 	</rule>

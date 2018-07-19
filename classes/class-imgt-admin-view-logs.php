@@ -87,7 +87,10 @@ class IMGT_Admin_View_Logs extends IMGT_Admin_View {
 			) );
 		}
 
-		add_screen_option( 'per_page', array( 'default' => 20, 'option' => 'edit_' . $wp_list_table->screen->post_type . '_per_page' ) );
+		add_screen_option( 'per_page', array(
+			'default' => 20,
+			'option'  => 'edit_' . $wp_list_table->screen->post_type . '_per_page',
+		) );
 
 		/**
 		 * Styles.

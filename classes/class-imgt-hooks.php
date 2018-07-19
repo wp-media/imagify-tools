@@ -78,7 +78,7 @@ class IMGT_Hooks {
 	 * @param  array $args An array of arguments passed to wp_remote_post().
 	 * @return array
 	 */
-	function make_async_job_blocking( $args ) {
+	public function make_async_job_blocking( $args ) {
 		if ( imagify_tools_get_site_transient( 'imgt_blocking_requests' ) ) {
 			$args['timeout'] = 30;
 			unset( $args['blocking'] );

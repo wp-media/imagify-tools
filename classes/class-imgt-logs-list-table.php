@@ -417,7 +417,7 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 	 * @param array $posts An array of posts.
 	 * @param int   $level Level of the post (level as in parent/child relation).
 	 */
-	private function _display_rows( $posts, $level = 0 ) {
+	private function _display_rows( $posts, $level = 0 ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
 		foreach ( $posts as $post ) {
 			$this->log = new IMGT_Log( $post );
 			$this->single_row( $post, $level );
@@ -461,7 +461,7 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 	 * @param string $data    Cell data attributes.
 	 * @param string $primary Name of the priramy column.
 	 */
-	protected function _column_title( $post, $classes, $data, $primary ) {
+	protected function _column_title( $post, $classes, $data, $primary ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
 		echo '<td class="' . $classes . ' page-title" ', $data, '>';
 			echo $this->column_title( $post );
 			echo $this->handle_row_actions( $post, 'title', $primary );

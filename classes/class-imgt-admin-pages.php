@@ -62,7 +62,7 @@ class IMGT_Admin_Pages {
 		$prefix = self::MAIN_PAGE_SLUG;
 
 		self::$pages_data = array(
-			$prefix => array(
+			$prefix           => array(
 				'data'       => 'Main',
 				'view'       => 'Main',
 				'page_title' => __( 'Imagify Tools Infos', 'imagify-tools' ),
