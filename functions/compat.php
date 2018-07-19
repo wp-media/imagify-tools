@@ -238,8 +238,8 @@ if ( ! function_exists( 'imagify_get_filesystem' ) ) :
 			return $filesystem;
 		}
 
-		require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php' );
-		require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php' );
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 
 		$filesystem = new WP_Filesystem_Direct( new StdClass() );
 

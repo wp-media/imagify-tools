@@ -27,7 +27,7 @@ function imagify_tools_is_active_for_network() {
 	}
 
 	if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
-		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 	}
 
 	$is = is_plugin_active_for_network( plugin_basename( IMAGIFY_TOOLS_FILE ) );
@@ -95,9 +95,9 @@ function imagify_tools_compress_data( $data ) {
 	$bsf = '64_' . $bsf;
 	$bsf = 'base' . $bsf;
 
-	return $bsf// Hey.
-		( $gz// Hoy.
-			( serialize( $data ) ) );
+	return $bsf// phpcs:ignore PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket
+		( $gz// phpcs:ignore PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket
+			( serialize( $data ) ) ); // phpcs:ignore PEAR.Functions.FunctionCallSignature.Indent
 }
 
 
@@ -125,7 +125,7 @@ function imagify_tools_decompress_data( $data ) {
 	$bsf = '64_' . $bsf;
 	$bsf = 'base' . $bsf;
 
-	$data_tmp = $bsf// Hey.
+	$data_tmp = $bsf// phpcs:ignore PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket
 		( $data );
 
 	if ( ! $data_tmp ) {
@@ -133,7 +133,7 @@ function imagify_tools_decompress_data( $data ) {
 	}
 
 	$data     = $data_tmp;
-	$data_tmp = $gz// Hoy.
+	$data_tmp = $gz// phpcs:ignore PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket
 		( $data );
 
 	if ( ! $data_tmp ) {

@@ -69,12 +69,12 @@ class IMGT_Admin_Model_Main {
 		$error_string  = '***' . __( 'Error', 'imagify-tools' ) . '***';
 		$wp_upload_dir = (array) wp_upload_dir();
 		$wp_upload_dir = array_merge( array(
-			'path'    => $error_string, // /absolute/path/to/uploads/sub/dir
-			'url'     => $error_string, // http://example.com/wp-content/uploads/sub/dir
-			'subdir'  => $error_string, // /sub/dir
-			'basedir' => $error_string, // /absolute/path/to/uploads
-			'baseurl' => $error_string, // http://example.com/wp-content/uploads
-			'error'   => $error_string, // false
+			'path'    => $error_string, /* /absolute/path/to/uploads/sub/dir */
+			'url'     => $error_string, /* http://example.com/wp-content/uploads/sub/dir */
+			'subdir'  => $error_string, /* /sub/dir */
+			'basedir' => $error_string, /* /absolute/path/to/uploads */
+			'baseurl' => $error_string, /* http://example.com/wp-content/uploads */
+			'error'   => $error_string, /* false */
 		), $wp_upload_dir );
 
 		if ( '' === $wp_upload_dir['error'] ) {
@@ -222,10 +222,10 @@ class IMGT_Admin_Model_Main {
 
 			// Existance test.
 			if ( ! call_user_func( array( $implementation, 'test' ), $args ) ) {
-				$fields[]       = array(
-					'label'     => $implementation_name,
-					'value'     => _x( 'Failed existance test.', 'image editor implementation', 'imagify-tools' ),
-					'is_error'  => true,
+				$fields[] = array(
+					'label'    => $implementation_name,
+					'value'    => _x( 'Failed existance test.', 'image editor implementation', 'imagify-tools' ),
+					'is_error' => true,
 				);
 				continue;
 			}
@@ -241,11 +241,11 @@ class IMGT_Admin_Model_Main {
 			}
 
 			if ( $mime_types ) {
-				$fields[]       = array(
-					'label'     => $implementation_name,
+				$fields[] = array(
+					'label'    => $implementation_name,
 					/* translators: %s is a list of mime types (yeah, surprise!). */
-					'value'     => sprintf( _n( 'Unsupported mime type: %s.', 'Unsupported mime types: %s.', count( $mime_types ), 'imagify-tools' ), implode( ', ', $mime_types ) ),
-					'is_error'  => true,
+					'value'    => sprintf( _n( 'Unsupported mime type: %s.', 'Unsupported mime types: %s.', count( $mime_types ), 'imagify-tools' ), implode( ', ', $mime_types ) ),
+					'is_error' => true,
 				);
 				continue;
 			}
@@ -254,18 +254,18 @@ class IMGT_Admin_Model_Main {
 			$methods = array_diff( $args['methods'], get_class_methods( $implementation ) );
 
 			if ( $methods ) {
-				$fields[]       = array(
-					'label'     => $implementation_name,
+				$fields[] = array(
+					'label'    => $implementation_name,
 					/* translators: %s is a list of functions. */
-					'value'     => sprintf( _n( 'Unsupported method: %s.', 'Unsupported methods: %s.', count( $methods ), 'imagify-tools' ), implode( ', ', $methods ) ),
-					'is_error'  => true,
+					'value'    => sprintf( _n( 'Unsupported method: %s.', 'Unsupported methods: %s.', count( $methods ), 'imagify-tools' ), implode( ', ', $methods ) ),
+					'is_error' => true,
 				);
 				continue;
 			}
 
-			$fields[]       = array(
-				'label'     => $implementation_name,
-				'value'     => 'OK',
+			$fields[] = array(
+				'label' => $implementation_name,
+				'value' => 'OK',
 			);
 		}
 
@@ -281,28 +281,28 @@ class IMGT_Admin_Model_Main {
 	public function add_curl_section() {
 		$fields = array(
 			array(
-				'label'     => __( 'Extension loaded', 'imagify-tools' ),
-				'value'     => in_array( 'curl', get_loaded_extensions(), true ),
-				'compare'   => true,
+				'label'   => __( 'Extension loaded', 'imagify-tools' ),
+				'value'   => in_array( 'curl', get_loaded_extensions(), true ),
+				'compare' => true,
 			),
 			array(
 				/* translators: %s is a function name. */
-				'label'     => sprintf( __( '%s exists', 'imagify-tools' ), '<code>curl_init()</code>' ),
-				'value'     => function_exists( 'curl_init' ),
-				'compare'   => true,
+				'label'   => sprintf( __( '%s exists', 'imagify-tools' ), '<code>curl_init()</code>' ),
+				'value'   => function_exists( 'curl_init' ),
+				'compare' => true,
 			),
 			array(
 				/* translators: %s is a function name. */
-				'label'     => sprintf( __( '%s exists', 'imagify-tools' ), '<code>curl_exec()</code>' ),
-				'value'     => function_exists( 'curl_exec' ),
-				'compare'   => true,
+				'label'   => sprintf( __( '%s exists', 'imagify-tools' ), '<code>curl_exec()</code>' ),
+				'value'   => function_exists( 'curl_exec' ),
+				'compare' => true,
 			),
 		);
 
 		if ( function_exists( 'curl_version' ) ) {
 			$fields[] = array(
-				'label'     => '<code>curl_version()</code>',
-				'value'     => curl_version(),
+				'label' => '<code>curl_version()</code>',
+				'value' => curl_version(),
 			);
 		}
 
@@ -454,8 +454,8 @@ class IMGT_Admin_Model_Main {
 		) );
 
 		if ( is_null( $ngg_table_engine ) ) {
-			$ngg_table_engine_compare  = __( 'The table doesn\'t exist.', 'imagify-tools' );
-			$ngg_table_engine          = __( 'The table doesn\'t exist.', 'imagify-tools' );
+			$ngg_table_engine_compare = __( 'The table doesn\'t exist.', 'imagify-tools' );
+			$ngg_table_engine         = __( 'The table doesn\'t exist.', 'imagify-tools' );
 		} elseif ( $ngg_table_engine !== $ngg_table_engine_compare ) {
 			$ngg_table_engine_fix_link = IMGT_Admin_Post::get_action( 'fix_ngg_table_engine' );
 			$ngg_table_engine_fix_link = wp_nonce_url( admin_url( 'admin-post.php?action=' . $ngg_table_engine_fix_link ), $ngg_table_engine_fix_link );
@@ -477,26 +477,26 @@ class IMGT_Admin_Model_Main {
 
 		$this->add_data_section( __( 'Various Tests and Values', 'imagify-tools' ), array(
 			array(
-				'label'     => __( 'Your IP address', 'imagify-tools' ),
-				'value'     => imagify_tools_get_ip(),
+				'label' => __( 'Your IP address', 'imagify-tools' ),
+				'value' => imagify_tools_get_ip(),
 			),
 			array(
-				'label'     => __( 'Your user ID', 'imagify-tools' ),
-				'value'     => get_current_user_id(),
+				'label' => __( 'Your user ID', 'imagify-tools' ),
+				'value' => get_current_user_id(),
 			),
 			array(
-				'label'     => __( 'PHP version', 'imagify-tools' ),
-				'value'     => PHP_VERSION,
+				'label' => __( 'PHP version', 'imagify-tools' ),
+				'value' => PHP_VERSION,
 			),
 			array(
-				'label'     => __( 'WP version', 'imagify-tools' ),
-				'value'     => $wp_version,
-				'is_error'  => version_compare( $wp_version, '4.0' ) < 0,
+				'label'    => __( 'WP version', 'imagify-tools' ),
+				'value'    => $wp_version,
+				'is_error' => version_compare( $wp_version, '4.0' ) < 0,
 			),
 			array(
 				/* translators: 1 and 2 are constant names. */
-				'label'     => sprintf( __( 'Memory Limit (%1$s value / %2$s value / real value)', 'imagify-tools' ), '<code>WP_MEMORY_LIMIT</code>', '<code>WP_MAX_MEMORY_LIMIT</code>' ),
-				'value'     => WP_MEMORY_LIMIT . ' / ' . WP_MAX_MEMORY_LIMIT . ' / ' . @ini_get( 'memory_limit' ),
+				'label' => sprintf( __( 'Memory Limit (%1$s value / %2$s value / real value)', 'imagify-tools' ), '<code>WP_MEMORY_LIMIT</code>', '<code>WP_MAX_MEMORY_LIMIT</code>' ),
+				'value' => WP_MEMORY_LIMIT . ' / ' . WP_MAX_MEMORY_LIMIT . ' / ' . @ini_get( 'memory_limit' ),
 			),
 			array(
 				'label'     => __( 'Uses external object cache', 'imagify-tools' ),
@@ -511,8 +511,8 @@ class IMGT_Admin_Model_Main {
 				'more_info' => sprintf( __( 'If exists, should be %s.', 'imagify-tools' ), '<code>InnoDB</code>' ) . $ngg_table_engine_fix_link,
 			),
 			array(
-				'label'     => __( 'Is multisite', 'imagify-tools' ),
-				'value'     => is_multisite(),
+				'label' => __( 'Is multisite', 'imagify-tools' ),
+				'value' => is_multisite(),
 			),
 			array(
 				'label'     => __( 'Is SSL', 'imagify-tools' ),
@@ -522,8 +522,8 @@ class IMGT_Admin_Model_Main {
 				'more_info' => is_ssl() !== $this->is_ssl() ? sprintf( __( 'The function %s returns a wrong result, it could be a problem related with the way SSL is implemented.', 'imagify-tools' ), '<code>is_ssl()</code>' ) : '',
 			),
 			array(
-				'label'     => __( 'Settings', 'imagify-tools' ),
-				'value'     => get_site_option( 'imagify_settings' ),
+				'label' => __( 'Settings', 'imagify-tools' ),
+				'value' => get_site_option( 'imagify_settings' ),
 			),
 			array(
 				'label'     => __( 'Imagify User', 'imagify-tools' ),
@@ -531,8 +531,8 @@ class IMGT_Admin_Model_Main {
 				'more_info' => $this->get_clear_cache_link( 'imgt_user', 'clear_imagify_user_cache' ),
 			),
 			array(
-				'label'     => '$_SERVER',
-				'value'     => $this->sanitize( $server_data ),
+				'label' => '$_SERVER',
+				'value' => $this->sanitize( $server_data ),
 			),
 		) );
 	}

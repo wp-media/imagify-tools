@@ -89,7 +89,7 @@ class IMGT_Nextgen_Gallery {
 	 * @param  int $count Number of columns.
 	 * @return int Incremented number of columns.
 	 */
-	function manage_images_number_of_columns( $count ) {
+	public function manage_images_number_of_columns( $count ) {
 		add_filter( 'ngg_manage_images_column_7_content', array( $this, 'manage_media_custom_column' ), 20, 2 );
 		return $count;
 	}
@@ -105,7 +105,7 @@ class IMGT_Nextgen_Gallery {
 	 * @param  object $image  An NGG Image object.
 	 * @return string
 	 */
-	function manage_media_custom_column( $output, $image ) {
+	public function manage_media_custom_column( $output, $image ) {
 		$attachment = new Imagify_NGG_Attachment( $image );
 
 		$output .= '<strong>' . __( 'Raw data:', 'imagify-tools' ) . '</strong>';
