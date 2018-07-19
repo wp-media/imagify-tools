@@ -342,6 +342,13 @@ class IMGT_Admin_Model_Main {
 			),
 			array(
 				/* translators: %s is a URL. */
+				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>s2-amz-par.imagify.io</code>' ),
+				'value'     => (bool) $this->are_requests_blocked( 'https://s2-amz-par.imagify.io/wpm.png' ),
+				'compare'   => false,
+				'more_info' => $this->are_requests_blocked( 'https://s2-amz-par.imagify.io/wpm.png' ) . $this->get_clear_request_cache_link( 'https://s2-amz-par.imagify.io/wpm.png' ),
+			),
+			array(
+				/* translators: %s is a URL. */
 				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>storage.imagify.io</code>' ),
 				'value'     => (bool) $this->are_requests_blocked( 'http://storage.imagify.io/images/index.png' ),
 				'compare'   => false,
