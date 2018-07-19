@@ -46,6 +46,7 @@ class IMGT_Admin_Model_Main {
 	 */
 	public function __construct() {
 		$this->add_filesystem_section();
+		$this->add_image_editor_section();
 		$this->add_curl_section();
 		$this->add_requests_section();
 		$this->add_files_section();
@@ -90,23 +91,6 @@ class IMGT_Admin_Model_Main {
 		$chmod_dir  = fileperms( ABSPATH ) & 0777 | 0755;
 		$chmod_file = fileperms( ABSPATH . 'index.php' ) & 0777 | 0644;
 		$backup_dir = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
-
-		/**
-		 * Image editor.
-		 */
-		$image_path = admin_url( 'images/arrows.png' );
-		$image_path = str_replace( site_url( '/' ), ABSPATH, $image_path );
-
-		if ( file_exists( $image_path ) ) {
-			$image_editor = wp_get_image_editor( $image_path );
-
-			if ( ! is_wp_error( $image_editor ) ) {
-				$image_editor = get_class( $image_editor );
-				$image_editor = str_replace( 'WP_Image_Editor_', '', $image_editor );
-			}
-		} else {
-			$image_editor = new WP_Error( 'image_not_found', __( 'Image not found.', 'imagify-tools' ) );
-		}
 
 		$imagify_settings = get_site_option( 'imagify_settings' );
 
@@ -189,14 +173,103 @@ class IMGT_Admin_Model_Main {
 				/* translators: %s is a value. */
 				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
 			),
-			array(
-				'label'     => __( 'Image Editor Component', 'imagify-tools' ),
-				'value'     => is_wp_error( $image_editor ) ? $image_editor->get_error_message() : $image_editor,
-				'is_error'  => is_wp_error( $image_editor ),
-				/* translators: 1 and 2 are values. */
-				'more_info' => sprintf( __( 'Should be %1$s or %2$s.', 'imagify-tools' ), '<code>Imagick</code>', '<code>GD</code>' ),
-			),
 		) );
+	}
+
+	/**
+	 * Add a section related to the image editor.
+	 *
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 */
+	public function add_image_editor_section() {
+		/**
+		 * The selected editor class.
+		 */
+		$image_editor = $this->get_image_editor_class();
+
+		$fields = array(
+			array(
+				'label'     => __( 'Selected Image Editor', 'imagify-tools' ),
+				'value'     => $image_editor ? str_replace( 'WP_Image_Editor_', '', $image_editor ) : _x( 'None', 'image editor', 'imagify-tools' ),
+				'is_error'  => ! $image_editor,
+				/* translators: 1 and 2 are values. */
+				'more_info' => sprintf( __( 'Should be %1$s or %2$s most of the time.', 'imagify-tools' ), '<code>Imagick</code>', '<code>GD</code>' ),
+			),
+		);
+
+		/**
+		 * Result of each class.
+		 */
+		$implementations = array_merge( array( $image_editor ), array( 'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD' ) );
+		$implementations = array_unique( array_filter( $implementations ) );
+
+		if ( defined( 'IMAGIFY_PATH' ) ) {
+			$image_path = IMAGIFY_PATH . 'assets/images/imagify-logo.png';
+		} else {
+			$image_path = admin_url( 'images/arrows.png' );
+			$image_path = str_replace( site_url( '/' ), ABSPATH, $image_path );
+		}
+
+		$args = array(
+			'path'       => $image_path,
+			'mime_types' => $this->get_mime_types( 'image' ),
+			'methods'    => $this->get_image_editor_methods(),
+		);
+
+		foreach ( $implementations as $implementation ) {
+			$implementation_name = str_replace( 'WP_Image_Editor_', '', $implementation );
+
+			// Existance test.
+			if ( ! call_user_func( array( $implementation, 'test' ), $args ) ) {
+				$fields[]       = array(
+					'label'     => $implementation_name,
+					'value'     => _x( 'Failed existance test.', 'image editor implementation', 'imagify-tools' ),
+					'is_error'  => true,
+				);
+				continue;
+			}
+
+			// Supported mime types.
+			$mime_types = array();
+
+			foreach ( $args['mime_types'] as $mime_type ) {
+				if ( ! call_user_func( array( $implementation, 'supports_mime_type' ), $mime_type ) ) {
+					$mime_types[] = $mime_type;
+					continue;
+				}
+			}
+
+			if ( $mime_types ) {
+				$fields[]       = array(
+					'label'     => $implementation_name,
+					/* translators: %s is a list of mime types (yeah, surprise!). */
+					'value'     => sprintf( _n( 'Unsupported mime type: %s.', 'Unsupported mime types: %s.', count( $mime_types ), 'imagify-tools' ), implode( ', ', $mime_types ) ),
+					'is_error'  => true,
+				);
+				continue;
+			}
+
+			// Supported methods.
+			$methods = array_diff( $args['methods'], get_class_methods( $implementation ) );
+
+			if ( $methods ) {
+				$fields[]       = array(
+					'label'     => $implementation_name,
+					/* translators: %s is a list of functions. */
+					'value'     => sprintf( _n( 'Unsupported method: %s.', 'Unsupported methods: %s.', count( $methods ), 'imagify-tools' ), implode( ', ', $methods ) ),
+					'is_error'  => true,
+				);
+				continue;
+			}
+
+			$fields[]       = array(
+				'label'     => $implementation_name,
+				'value'     => 'OK',
+			);
+		}
+
+		$this->add_data_section( __( 'Image Editor Component', 'imagify-tools' ), $fields );
 	}
 
 	/**
@@ -628,21 +701,28 @@ class IMGT_Admin_Model_Main {
 	 * Get all mime types which could be optimized by Imagify.
 	 *
 	 * @since  1.0.2
+	 * @since  1.0.3 Added $type parameter.
 	 * @author Grégory Viguier
 	 *
-	 * @return array The mime types.
+	 * @param  string $type One of 'image', 'not-image'. Any other value will return all mime types.
+	 * @return array        The mime types.
 	 */
-	public function get_mime_types() {
-		if ( function_exists( 'imagify_get_mime_types' ) ) {
-			return imagify_get_mime_types();
+	public function get_mime_types( $type = null ) {
+		$mimes = array();
+
+		if ( 'not-image' !== $type ) {
+			$mimes = array(
+				'jpg|jpeg|jpe' => 'image/jpeg',
+				'png'          => 'image/png',
+				'gif'          => 'image/gif',
+			);
 		}
 
-		return array(
-			'jpg|jpeg|jpe' => 'image/jpeg',
-			'png'          => 'image/png',
-			'gif'          => 'image/gif',
-			'pdf'          => 'application/pdf',
-		);
+		if ( 'image' !== $type ) {
+			$mimes['pdf'] = 'application/pdf';
+		}
+
+		return $mimes;
 	}
 
 	/**
@@ -677,6 +757,86 @@ class IMGT_Admin_Model_Main {
 		}
 
 		return $statuses;
+	}
+
+	/**
+	 * Get the image editor.
+	 *
+	 * @since  1.0.3
+	 * @author Grégory Viguier
+	 *
+	 * @return string|bool The class name. False on error.
+	 */
+	public function get_image_editor_class() {
+		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
+		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
+		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
+
+		if ( defined( 'IMAGIFY_PATH' ) ) {
+			$image_path = IMAGIFY_PATH . 'assets/images/imagify-logo.png';
+		} else {
+			$image_path = admin_url( 'images/arrows.png' );
+			$image_path = str_replace( site_url( '/' ), ABSPATH, $image_path );
+		}
+
+		$args = array(
+			'path'       => $image_path,
+			'mime_types' => $this->get_mime_types( 'image' ),
+			'methods'    => $this->get_image_editor_methods(),
+		);
+
+		/** This filter is documented in /wp-includes/media.php. */
+		$implementations = apply_filters( 'wp_image_editors', array( 'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD' ) );
+
+		foreach ( $implementations as $implementation ) {
+			if ( ! call_user_func( array( $implementation, 'test' ), $args ) ) {
+				continue;
+			}
+
+			foreach ( $args['mime_types'] as $mime_type ) {
+				if ( ! call_user_func( array( $implementation, 'supports_mime_type' ), $mime_type ) ) {
+					continue 2;
+				}
+			}
+
+			if ( array_diff( $args['methods'], get_class_methods( $implementation ) ) ) {
+				continue;
+			}
+
+			return $implementation;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get the image editor methods we will use.
+	 *
+	 * @since  1.0.3
+	 * @access public
+	 * @author Grégory Viguier
+	 *
+	 * @return array
+	 */
+	public function get_image_editor_methods() {
+		static $methods;
+
+		if ( isset( $methods ) ) {
+			return $methods;
+		}
+
+		$methods = array(
+			'resize',
+			'multi_resize',
+			'generate_filename',
+			'save',
+		);
+
+		if ( is_callable( 'exif_read_data' ) ) {
+			$methods[] = 'rotate';
+		}
+
+		return $methods;
 	}
 
 	/**
