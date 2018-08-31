@@ -35,7 +35,7 @@
 		<exclude name="WordPress.XSS.EscapeOutput"/>
 	</rule>
 
-	<rule ref="WordPress.CSRF.NonceVerification">
+	<rule ref="WordPress.Security.NonceVerification">
 		<properties>
 			<property name="customNonceVerificationFunctions" value="check_nonce_and_user" type="array"/>
 		</properties>
