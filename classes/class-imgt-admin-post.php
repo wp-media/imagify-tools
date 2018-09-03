@@ -366,7 +366,7 @@ class IMGT_Admin_Post {
 
 			if ( ! $filesystem->exists( IMAGIFY_TOOLS_PATH . 'uninstall.php' ) ) {
 				/* translators: %s is a file name. */
-				wp_die( sprintf( __( 'Couldn\'t find the file %s.', 'imagify-tools' ), '<code>uninstall.php</code>' ) );
+				wp_die( sprintf( __( 'Could not find the file %s.', 'imagify-tools' ), '<code>uninstall.php</code>' ) );
 			}
 
 			// Uninstall.
