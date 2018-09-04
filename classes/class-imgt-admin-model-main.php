@@ -46,6 +46,7 @@ class IMGT_Admin_Model_Main {
 	 */
 	public function __construct() {
 		$this->add_filesystem_section();
+		$this->add_imagify_filesystem_section();
 		$this->add_image_editor_section();
 		$this->add_curl_section();
 		$this->add_requests_section();
@@ -63,6 +64,11 @@ class IMGT_Admin_Model_Main {
 	 * @author Grégory Viguier
 	 */
 	public function add_filesystem_section() {
+		/**
+		 * Define FS_CHMOD_DIR and FS_CHMOD_FILE.
+		 */
+		imagify_get_filesystem();
+
 		/**
 		 * Uploads dir and URL.
 		 */
@@ -87,14 +93,12 @@ class IMGT_Admin_Model_Main {
 		/**
 		 * Chmod and backup dir.
 		 */
-		$filesystem = imagify_get_filesystem();
-		$chmod_dir  = fileperms( ABSPATH ) & 0777 | 0755;
-		$chmod_file = fileperms( ABSPATH . 'index.php' ) & 0777 | 0644;
-		$backup_dir = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
-
+		$chmod_dir        = fileperms( ABSPATH ) & 0777 | 0755;
+		$chmod_file       = fileperms( ABSPATH . 'index.php' ) & 0777 | 0644;
+		$backup_dir       = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
 		$imagify_settings = get_site_option( 'imagify_settings' );
 
-		$this->add_data_section( __( 'Filesystem Tests', 'imagify-tools' ), array(
+		$this->add_data_section( __( 'WordPress Filesystem', 'imagify-tools' ), array(
 			array(
 				'label'     => 'ABSPATH',
 				'value'     => ABSPATH,
@@ -110,9 +114,9 @@ class IMGT_Admin_Model_Main {
 			array(
 				'label'     => 'wp_upload_dir() <em>(path)</em>',
 				'value'     => $wp_upload_dir['path'],
-				'is_error'  => $error_string === $wp_upload_dir['path'] || strpos( $wp_upload_dir['path'], ABSPATH ) !== 0 || ! path_is_absolute( $wp_upload_dir['path'] ),
+				'is_error'  => $error_string === $wp_upload_dir['path'] || ! path_is_absolute( $wp_upload_dir['path'] ),
 				/* translators: %s is a file path. */
-				'more_info' => sprintf( __( 'Should be an absolute path and start with %s.', 'imagify-tools' ), '<code>' . ABSPATH . '</code>' ),
+				'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
 			),
 			array(
 				'label'     => 'wp_upload_dir() <em>(url)</em>',
@@ -129,9 +133,8 @@ class IMGT_Admin_Model_Main {
 			array(
 				'label'     => 'wp_upload_dir() <em>(basedir)</em>',
 				'value'     => $wp_upload_dir['basedir'],
-				'is_error'  => $error_string === $wp_upload_dir['basedir'] || strpos( $wp_upload_dir['basedir'], ABSPATH ) !== 0 || ! path_is_absolute( $wp_upload_dir['basedir'] ),
-				/* translators: %s is a file path. */
-				'more_info' => sprintf( __( 'Should be an absolute path and start with %s.', 'imagify-tools' ), '<code>' . ABSPATH . '</code>' ),
+				'is_error'  => $error_string === $wp_upload_dir['basedir'] || ! path_is_absolute( $wp_upload_dir['basedir'] ),
+				'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
 			),
 			array(
 				'label'     => 'wp_upload_dir() <em>(baseurl)</em>',
@@ -153,27 +156,94 @@ class IMGT_Admin_Model_Main {
 				'more_info' => ! empty( $imagify_settings['backup'] ) ? __( 'Backup is enabled.', 'imagify-tools' ) : __( 'No need, backup is disabled.', 'imagify-tools' ),
 			),
 			array(
+				'label'     => 'FS_CHMOD_DIR',
+				'value'     => $this->to_octal( FS_CHMOD_DIR ) . ' (' . FS_CHMOD_DIR . ')',
+				'compare'   => $this->to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')',
+				/* translators: %s is a value. */
+				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')</code>' ),
+			),
+			array(
+				'label'     => 'FS_CHMOD_FILE',
+				'value'     => $this->to_octal( FS_CHMOD_FILE ) . ' (' . FS_CHMOD_FILE . ')',
+				'compare'   => $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')',
+				/* translators: %s is a value. */
+				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
+			),
+		) );
+	}
+
+	/**
+	 * Add a section related to the filesystem.
+	 *
+	 * @since  1.0.4
+	 * @author Grégory Viguier
+	 */
+	public function add_imagify_filesystem_section() {
+		/**
+		 * Chmod and backup dir.
+		 */
+		$filesystem            = imagify_get_filesystem();
+		$is_imagify_filesystem = $filesystem instanceof Imagify_Filesystem;
+		$fields                = array();
+
+		if ( $is_imagify_filesystem ) {
+			$internal_path_test = ABSPATH;
+
+			if ( method_exists( $filesystem, 'has_wp_its_own_directory' ) ) {
+				$fields[] = array(
+					'label' => __( 'WP has its own directory', 'imagify-tools' ),
+					'value' => $filesystem->has_wp_its_own_directory(),
+				);
+			}
+
+			if ( method_exists( $filesystem, 'get_root' ) ) {
+				$fields[] = array(
+					'label'     => '$filesystem->get_root() (<em>' . __( 'Server’s root', 'imagify-tools' ) . '</em>)',
+					'value'     => $filesystem->get_root(),
+					'is_error'  => ! path_is_absolute( $filesystem->get_root() ),
+					'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
+				);
+				$internal_path_test = $filesystem->get_root();
+			}
+
+			if ( method_exists( $filesystem, 'get_site_root' ) ) {
+				$fields[] = array(
+					'label'     => '$filesystem->get_site_root() (<em>' . __( 'Site’s root', 'imagify-tools' ) . '</em>)',
+					'value'     => $filesystem->get_site_root(),
+					'is_error'  => strpos( $filesystem->get_site_root(), $internal_path_test ) !== 0 || ! path_is_absolute( $filesystem->get_site_root() ),
+					/* translators: %s is a file path. */
+					'more_info' => sprintf( __( 'Should be an absolute path and start with %s.', 'imagify-tools' ), '<code>' . $internal_path_test . '</code>' ),
+				);
+				$internal_path_test = $filesystem->get_site_root();
+			}
+
+			if ( method_exists( $filesystem, 'get_abspath' ) ) {
+				$fields[] = array(
+					'label'     => '$filesystem->get_abspath() (<em>' . __( 'WordPress’ root', 'imagify-tools' ) . '</em>)',
+					'value'     => $filesystem->get_abspath(),
+					'is_error'  => strpos( $filesystem->get_abspath(), $internal_path_test ) !== 0 || ! path_is_absolute( $filesystem->get_abspath() ),
+					/* translators: %s is a file path. */
+					'more_info' => sprintf( __( 'Should be an absolute path and start with %s.', 'imagify-tools' ), '<code>' . $internal_path_test . '</code>' ),
+				);
+			}
+		} else {
+			$fields[] = array(
+				'label' => __( 'Activate Imagify >= 1.7.1 for more data', 'imagify-tools' ),
+				'value' => '',
+			);
+		}
+
+		$fields = array_merge( $fields, array(
+			array(
 				'label'     => 'imagify_get_filesystem()',
 				'value'     => $filesystem,
 				'is_error'  => ! is_object( $filesystem ) || ! $filesystem || ! isset( $filesystem->errors ) || array_filter( (array) $filesystem->errors ),
 				/* translators: 1 and 2 are data names. */
 				'more_info' => sprintf( __( '%1$s and %2$s should be empty.', 'imagify-tools' ), '<code>WP_Error->errors</code>', '<code>WP_Error->error_data</code>' ),
 			),
-			array(
-				'label'     => 'FS_CHMOD_DIR',
-				'value'     => defined( 'FS_CHMOD_DIR' ) ? $this->to_octal( FS_CHMOD_DIR ) . ' (' . FS_CHMOD_DIR . ')' : __( 'Not defined', 'imagify-tools' ),
-				'compare'   => defined( 'FS_CHMOD_DIR' ) ? $this->to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')' : null,
-				/* translators: %s is a value. */
-				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')</code>' ),
-			),
-			array(
-				'label'     => 'FS_CHMOD_FILE',
-				'value'     => defined( 'FS_CHMOD_FILE' ) ? $this->to_octal( FS_CHMOD_FILE ) . ' (' . FS_CHMOD_FILE . ')' : __( 'Not defined', 'imagify-tools' ),
-				'compare'   => defined( 'FS_CHMOD_FILE' ) ? $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')' : null,
-				/* translators: %s is a value. */
-				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
-			),
 		) );
+
+		$this->add_data_section( __( 'Imagify Filesystem', 'imagify-tools' ), $fields );
 	}
 
 	/**
