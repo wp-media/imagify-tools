@@ -1,5 +1,5 @@
 <?php
-defined( 'ABSPATH' ) || die( 'Cheatin\' uh?' );
+defined( 'ABSPATH' ) || die( 'Cheatin’ uh?' );
 ?>
 <div class="wrap imgt-wrap"<?php $this->render_language_attributes(); ?>>
 	<?php
