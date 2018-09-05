@@ -1,4 +1,6 @@
 <?php
-defined( 'ABSPATH' ) || die( 'Cheatin\' uh?' );
+defined( 'ABSPATH' ) || die( 'Cheatin’ uh?' );
 
-global $wpdb, $wp_filter;
+global $wpdb, $wp_filter, $wp_rewrite;
+
+$filesystem = imagify_get_filesystem();

@@ -1,5 +1,5 @@
 <?php
-defined( 'ABSPATH' ) || die( 'Cheatin\' uh?' );
+defined( 'ABSPATH' ) || die( 'Cheatin’ uh?' );
 
 /**
  * Log class.
@@ -342,7 +342,7 @@ class IMGT_Log {
 
 		$ajax_url = preg_quote( admin_url( 'admin-ajax.php' ), '@' );
 
-		if ( isset( $args['method'], $args['body']['action'] ) && 'POST' === strtoupper( $args['method'] ) && 0 === strpos( 'imagify_', $args['body']['action'] ) && preg_match( '@^' . $ajax_url . '@', $url ) ) {
+		if ( isset( $args['method'], $args['body']['action'] ) && 'POST' === strtoupper( $args['method'] ) && 0 === strpos( $args['body']['action'], 'imagify_' ) && preg_match( '@^' . $ajax_url . '@', $url ) ) {
 			return compact( 'url', 'args', 'response' );
 		}
 
