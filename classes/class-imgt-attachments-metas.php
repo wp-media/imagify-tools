@@ -274,8 +274,8 @@ class IMGT_Attachments_Metas {
 			/**
 			 * Dimensions.
 			 */
-			$is_image = (object) wp_check_filetype( $path );
-			$is_image = strpos( (string) $is_image->type, 'image/' ) === 0;
+			$is_image = (object) wp_check_filetype( $path, IMGT_Tools::get_mime_types( 'image' ) );
+			$is_image = ! empty( $is_image->type );
 
 			if ( $is_image ) {
 				$imgsize = @getimagesize( $path );
