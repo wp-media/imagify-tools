@@ -124,7 +124,9 @@ class IMGT_Attachments_Metas {
 			'attachment',
 			'normal',
 			'high',
-			$metas
+			array(
+				'metas' => $metas,
+			)
 		);
 
 		add_filter( 'postbox_classes_attachment_' . self::METABOX_ID . '-file-infos', array( $this, 'add_meta_box_class' ) );
@@ -208,7 +210,7 @@ class IMGT_Attachments_Metas {
 	 * @author Grégory Viguier
 	 */
 	public function print_meta_box_no_content() {
-		echo '<div class="row-error">' . _x( 'None!', 'attachment meta data', 'imagify-tools' ) . '</div>';
+		echo '<div class="row-error">' . esc_html_x( 'None!', 'attachment meta data', 'imagify-tools' ) . '</div>';
 	}
 
 	/**
@@ -221,39 +223,71 @@ class IMGT_Attachments_Metas {
 	 * @param array  $data An array of data related to the meta box.
 	 */
 	public function print_meta_box_file_infos( $post, $data ) {
-		$path = get_attached_file( $post->ID );
+		$path = get_attached_file( $post->ID, true );
 
 		if ( ! $path ) {
-			echo '<div class="row-error">' . __( 'Cannot retrieve file path.', 'imagify-tools' ) . '</div>';
+			echo '<div class="row-error">' . esc_html__( 'Cannot retrieve file path.', 'imagify-tools' ) . '</div>';
 			return;
 		}
 
 		$path   = wp_normalize_path( $path );
-		$exists = false;
+		$exists = file_exists( $path );
 
-		/**
-		 * Dimensions.
-		 */
-		if ( file_exists( $path ) ) {
-			$exists  = true;
-			$imgsize = getimagesize( $path );
-			$width   = $imgsize ? (int) $imgsize[0] : 0;
-			$height  = $imgsize ? (int) $imgsize[1] : 0;
-		}
-
-		/**
-		 * Weight.
-		 */
 		if ( $exists ) {
-			$bytes = @filesize( $path );
-			$bytes = $bytes ? @size_format( $bytes, $decimals ) : '0';
-			$bytes = str_replace( ' ', ' ', $bytes );
+			/**
+			 * Writable?
+			 */
+			$is_writable = wp_is_writable( $path );
+
+			/**
+			 * File perms, ownership, group.
+			 */
+			$files_chmod = defined( 'FS_CHMOD_FILE' ) ? FS_CHMOD_FILE : fileperms( ABSPATH . 'index.php' ) & 0777 | 0644;
+			$file_chmod  = fileperms( $path ) & 0777 | 0644;
+			$file_stats  = @stat( $path );
+			$file_owner  = '';
+			$files_owner = '';
+
+			if ( $file_stats ) {
+				$file_owner = posix_getpwuid( $file_stats['uid'] );
+				$file_owner = $file_owner['name'] . ' (' . $file_owner['uid'] . ')';
+
+				// `index.php`
+				$files_stats = @stat( ABSPATH . 'index.php' );
+
+				if ( $files_stats ) {
+					$files_owner = posix_getpwuid( $files_stats['uid'] );
+					$files_owner = $files_owner['name'] . ' (' . $files_owner['uid'] . ')';
+				}
+			}
+
+			/**
+			 * Weight.
+			 */
+			if ( $file_stats ) {
+				$bytes = $file_stats['size'] ? @size_format( $file_stats['size'], 2 ) : '0';
+				$bytes = str_replace( ' ', ' ', $bytes );
+			} else {
+				$bytes = '0';
+			}
+
+			/**
+			 * Dimensions.
+			 */
+			$is_image = (object) wp_check_filetype( $path );
+			$is_image = strpos( (string) $is_image->type, 'image/' ) === 0;
+
+			if ( $is_image ) {
+				$imgsize = @getimagesize( $path );
+				$width   = $imgsize ? $imgsize[0] : 0;
+				$height  = $imgsize ? $imgsize[1] : 0;
+			}
 		}
 
 		/**
 		 * Thumbnails.
 		 */
-		$sizes       = ! empty( $data['args']['_wp_attachment_metadata'][0]['sizes'] ) && is_array( $data['args']['_wp_attachment_metadata'][0]['sizes'] ) ? $data['args']['_wp_attachment_metadata'][0]['sizes'] : array();
+		$sizes       = ! empty( $data['args']['metas']['_wp_attachment_metadata'][0]['sizes'] ) && is_array( $data['args']['metas']['_wp_attachment_metadata'][0]['sizes'] ) ? $data['args']['metas']['_wp_attachment_metadata'][0]['sizes'] : array();
 		$thumb_error = true;
 
 		if ( $sizes ) {
@@ -263,11 +297,11 @@ class IMGT_Attachments_Metas {
 			foreach ( $sizes as $size_name => $size_data ) {
 				if ( file_exists( $original_dirname . $size_data['file'] ) ) {
 					/* translators: 1 and 2 are whatever you like them to be. Even more. */
-					$sizes[ $size_name ] = esc_html( sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Exists', 'File', 'imagify-tools' ), $size_name ) );
+					$sizes[ $size_name ] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Exists', 'File', 'imagify-tools' ), $size_name );
 				} else {
 					$thumb_error = true;
 					/* translators: 1 and 2 are whatever you like them to be. Even more. */
-					$sizes[ $size_name ] = esc_html( sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Does not exist', 'File', 'imagify-tools' ), $size_name ) );
+					$sizes[ $size_name ] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Does not exist', 'File', 'imagify-tools' ), $size_name );
 				}
 			}
 		}
@@ -291,11 +325,50 @@ class IMGT_Attachments_Metas {
 		 */
 		echo '<table><tbody>';
 
-		echo '<tr' . ( $exists ? '' : ' class="row-error"' ) . '><th>' . __( 'Path', 'imagify-tools' ) . '</th><td>' . esc_html( $path ) . ' (' . ( $exists ? __( 'file exists', 'imagify-tools' ) : __( 'file does not exist', 'imagify-tools' ) ) . ')</td></tr>';
-		echo $exists ? '<tr' . ( $imgsize ? '' : ' class="row-error"' ) . '><th>' . __( 'Dimensions', 'imagify-tools' ) . '</th><td>' . $width . '&nbsp;&times;&nbsp;' . $height . '</td></tr>' : '';
-		echo $exists ? '<tr' . ( $bytes ? '' : ' class="row-error"' ) . '><th>' . __( 'Weight', 'imagify-tools' ) . '</th><td>' . esc_html( $bytes ) . '</td></tr>' : '';
-		echo '<tr' . ( ! $thumb_error ? '' : ' class="row-error"' ) . '><th>' . __( 'Thumbnails', 'imagify-tools' ) . '</th><td>' . implode( '<br/>', $sizes ) . '</td></tr>';
-		echo '<tr' . ( $has_backup ? '' : ' class="row-error"' ) . '><th>' . __( 'Has backup', 'imagify-tools' ) . '</th><td>' . esc_html( $has_backup ? __( 'Yes', 'imagify-tools' ) : __( 'No', 'imagify-tools' ) ) . '</td></tr>';
+		echo '<tr>';
+			echo '<th>' . esc_html__( 'Path', 'imagify-tools' ) . '</th><td>' . esc_html( $path ) . '</td>';
+		echo '</tr>';
+
+		echo '<tr' . ( $exists ? '' : ' class="row-error"' ) . '>';
+			echo '<th>' . esc_html__( 'File exists', 'imagify-tools' ) . '</th><td>' . esc_html( $exists ? __( 'Yes', 'imagify-tools' ) : __( 'No', 'imagify-tools' ) ) . '</td>';
+		echo '</tr>';
+
+		if ( $exists ) {
+			echo '<tr' . ( $is_writable ? '' : ' class="row-error"' ) . '>';
+				echo '<th>' . esc_html__( 'File is writable', 'imagify-tools' ) . '</th><td>' . esc_html( $is_writable ? __( 'Yes', 'imagify-tools' ) : __( 'No', 'imagify-tools' ) ) . '</td>';
+			echo '</tr>';
+
+			echo '<tr' . ( $file_chmod && $file_chmod === $files_chmod ? '' : ' class="row-error"' ) . '>';
+				echo '<th>' . esc_html__( 'File permissions', 'imagify-tools' ) . '</th>';
+				echo '<td>';
+					echo esc_html( IMGT_Tools::to_octal( $file_chmod ) . ' (' . $file_chmod . ').' );
+					echo ' <code>index.php</code>: ' . esc_html( IMGT_Tools::to_octal( $files_chmod ) . ' (' . $files_chmod . ').' );
+				echo '</td>';
+			echo '</tr>';
+
+			echo '<tr' . ( $file_owner && $file_owner === $files_owner ? '' : ' class="row-error"' ) . '>';
+				echo '<th>' . esc_html__( 'File owner', 'imagify-tools' ) . '</th>';
+				echo '<td>' . esc_html( $file_owner ) . '. <code>index.php</code>: ' . esc_html( $files_owner ) . '.</td>';
+			echo '</tr>';
+
+			echo '<tr' . ( $bytes ? '' : ' class="row-error"' ) . '>';
+				echo '<th>' . esc_html__( 'Weight', 'imagify-tools' ) . '</th><td>' . esc_html( $bytes ) . '</td>';
+			echo '</tr>';
+
+			if ( $is_image ) {
+				echo '<tr' . ( $imgsize ? '' : ' class="row-error"' ) . '>';
+					echo '<th>' . esc_html__( 'Dimensions', 'imagify-tools' ) . '</th><td>' . (int) $width . '&nbsp;&times;&nbsp;' . (int) $height . '</td>';
+				echo '</tr>';
+			}
+		}
+
+		echo '<tr' . ( ! $thumb_error ? '' : ' class="row-error"' ) . '>';
+			echo '<th>' . esc_html__( 'Thumbnails', 'imagify-tools' ) . '</th><td>' . implode( '<br/>', array_map( 'esc_html', $sizes ) ) . '</td>';
+		echo '</tr>';
+
+		echo '<tr' . ( $has_backup ? '' : ' class="row-error"' ) . '>';
+			echo '<th>' . esc_html__( 'Has backup', 'imagify-tools' ) . '</th><td>' . esc_html( $has_backup ? __( 'Yes', 'imagify-tools' ) : __( 'No', 'imagify-tools' ) ) . '</td>';
+		echo '</tr>';
 
 		echo '</tbody></table>';
 	}
@@ -318,14 +391,14 @@ class IMGT_Attachments_Metas {
 
 		foreach ( $all_metas as $meta_name => $meta_values ) {
 			if ( isset( $required[ $meta_name ] ) && ! isset( $metas[ $meta_name ] ) ) {
-				echo '<tr class="row-error"><th>' . $meta_name . '</th><td>' . __( 'The meta is missing!', 'imagify-tools' ) . '</td></tr>';
+				echo '<tr class="row-error"><th>' . esc_html( $meta_name ) . '</th><td>' . esc_html__( 'The meta is missing!', 'imagify-tools' ) . '</td></tr>';
 				continue;
 			}
 
-			$multiple_metas = count( $meta_values ) > 1;
+			$multiple_metas = false;
 
 			echo '<tr>';
-			echo '<th>' . $meta_name . '</th>';
+			echo '<th>' . esc_html( $meta_name ) . '</th>';
 			echo '<td>';
 
 			$separator = '';
@@ -334,16 +407,19 @@ class IMGT_Attachments_Metas {
 				if ( is_numeric( $meta_value ) || is_null( $meta_value ) || is_bool( $meta_value ) ) {
 					ob_start();
 					call_user_func( 'var_dump', $meta_value );
-					$meta_value = trim( strip_tags( ob_get_clean() ) );
+					$meta_value = trim( wp_strip_all_tags( ob_get_clean() ) );
 					$meta_value = preg_replace( '@^.+\.php:\d+:@', '', $meta_value );
 					$meta_value = preg_replace( '@\(length=\d+\)$@', '<em><small>\0</small></em>', $meta_value );
 				} else {
 					$meta_value = esc_html( call_user_func( 'print_r', $meta_value, 1 ) );
 				}
 
-				echo $separator;
-				echo '<pre>' . $meta_value . '</pre>';
-				$separator = $multiple_metas ? '<hr/>' : '';
+				if ( $multiple_metas ) {
+					echo '<hr/>';
+				}
+				$multiple_metas = true;
+
+				call_user_func( 'printf', '<pre>%s</pre>',  $meta_value );
 			}
 
 			echo '</td>';
