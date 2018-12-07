@@ -254,6 +254,7 @@ class Imagify_Tools {
 			'IMGT_Logs_List_Table'   => 1,
 			'IMGT_Log'               => 1,
 			'IMGT_Nextgen_Gallery'   => 1,
+			'IMGT_Tools'             => 1,
 		);
 
 		if ( isset( $classes[ $class ] ) ) {
