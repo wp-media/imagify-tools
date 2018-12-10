@@ -386,72 +386,64 @@ class IMGT_Admin_Model_Main {
 	 * @author Grégory Viguier
 	 */
 	public function add_requests_section() {
+		// Link to switch between async and blocking requests.
 		$blocking_link = imagify_tools_get_site_transient( 'imgt_blocking_requests' ) ? __( 'Make optimization back to async', 'imagify-tools' ) : __( 'Make optimization non async', 'imagify-tools' );
-		$blocking_link = '<a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ), IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ) ) . '">' . $blocking_link . '</a>';
-		$ajax_url      = admin_url( 'admin-ajax.php?action=' . IMGT_Admin_Post::get_action( 'test' ) );
-		$post_url      = admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'test' ) );
-		$requests      = array(
+		$blocking_link = sprintf(
+			'<a class="imgt-button imgt-button-ternary imgt-button-mini" href="%s">%s</a>',
+			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ), IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ) ),
+			$blocking_link
+		);
+
+		$requests = array(
 			array(
 				'label'     => '',
 				'value'     => '',
 				'more_info' => $blocking_link,
 			),
-			array(
-				/* translators: %s is a URL. */
-				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>imagify.io</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( 'https://imagify.io' ),
-				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( 'https://imagify.io' ) . $this->get_clear_request_cache_link( 'https://imagify.io' ),
-			),
-			array(
-				/* translators: %s is a URL. */
-				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>app.imagify.io</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( 'https://app.imagify.io/api/version/' ),
-				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( 'https://app.imagify.io/api/version/' ) . $this->get_clear_request_cache_link( 'https://app.imagify.io/api/version/' ),
-			),
-			array(
-				/* translators: %s is a URL. */
-				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>s2-amz-par.imagify.io</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( 'https://s2-amz-par.imagify.io/wpm.png' ),
-				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( 'https://s2-amz-par.imagify.io/wpm.png' ) . $this->get_clear_request_cache_link( 'https://s2-amz-par.imagify.io/wpm.png' ),
-			),
-			array(
-				/* translators: %s is a URL. */
-				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>storage.imagify.io</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( 'http://storage.imagify.io/images/index.png' ),
-				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( 'http://storage.imagify.io/images/index.png' ) . $this->get_clear_request_cache_link( 'http://storage.imagify.io/images/index.png' ),
-			),
-			array(
-				/* translators: %s is a URL. */
-				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>' . preg_replace( '@^https?://@', '', admin_url( 'admin-ajax.php' ) ) . '</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( $ajax_url, 'POST' ),
-				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( $ajax_url, 'POST' ) . $this->get_clear_request_cache_link( $ajax_url, 'POST' ),
-			),
 		);
 
-		if ( $this->are_requests_blocked( $ajax_url, 'POST' ) && preg_match( '@^https://@', $ajax_url ) ) {
-			/* translators: %s is a URL. */
-			$requests[4]['label'] = sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>' . admin_url( 'admin-ajax.php' ) . '</code>' );
+		// Try to contact our servers.
+		$imagify_urls = array(
+			'https://imagify.io',
+			'https://app.imagify.io/api/version/',
+			'https://s2-amz-par.imagify.io/wpm.png',
+			'http://storage.imagify.io/images/index.png',
+		);
 
-			$urls = array(
-				set_url_scheme( $post_url, 'https' ),
-				set_url_scheme( site_url( 'wp-cron.php' ), 'https' ),
-				set_url_scheme( $ajax_url, 'http' ),
-				set_url_scheme( $post_url, 'http' ),
-				set_url_scheme( site_url( 'wp-cron.php' ), 'http' ),
+		foreach ( $imagify_urls as $imagify_url ) {
+			// The 2nd parameter in wp_parse_url() was introduced in WP 4.7, we can't use it.
+			$url_domain = wp_parse_url( $imagify_url );
+			$url_domain = $url_domain['host'];
+			$requests[] = array(
+				/* translators: 1 is $_GET or $_POST, 2 is a URL. */
+				'label'     => sprintf( __( '%1$s requests to %2$s blocked', 'imagify-tools' ), '<code>$_GET</code>', '<code>' . $url_domain . '</code>' ),
+				'value'     => (bool) $this->are_requests_blocked( $imagify_url, 'GET' ),
+				'compare'   => false,
+				'more_info' => $this->are_requests_blocked( $imagify_url, 'GET' ) . $this->get_clear_request_cache_link( $imagify_url, 'GET' ),
 			);
+		}
 
-			foreach ( $urls as $url ) {
+		// Test for local URLs: admin-ajax.php, admin-post.php, and wp-cron.php.
+		$local_urls = array(
+			admin_url( 'admin-ajax.php?action=' . IMGT_Admin_Post::get_action( 'test' ) ),
+			admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'test' ) ),
+			site_url( 'wp-cron.php' ),
+		);
+
+		foreach ( $local_urls as $local_url ) {
+			$test_urls = (array) $local_url;
+
+			if ( $this->are_requests_blocked( $local_url, 'POST' ) ) {
+				$test_urls[] = preg_match( '@^https://@', $local_url ) ? set_url_scheme( $local_url, 'http' ) : set_url_scheme( $local_url, 'https' );
+			}
+
+			foreach ( $test_urls as $test_url ) {
 				$requests[] = array(
-					/* translators: %s is a URL. */
-					'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>' . $url . '</code>' ),
-					'value'     => (bool) $this->are_requests_blocked( $url, 'POST' ),
+					/* translators: 1 is $_GET or $_POST, 2 is a URL. */
+					'label'     => sprintf( __( '%1$s requests to %2$s blocked', 'imagify-tools' ), '<code>$_POST</code>', '<code>' . strtok( $test_url, '?' ) . '</code>' ),
+					'value'     => (bool) $this->are_requests_blocked( $test_url, 'POST' ),
 					'compare'   => false,
-					'more_info' => $this->are_requests_blocked( $url, 'POST' ) . $this->get_clear_request_cache_link( $url, 'POST' ),
+					'more_info' => $this->are_requests_blocked( $test_url, 'POST' ) . $this->get_clear_request_cache_link( $test_url, 'POST' ),
 				);
 			}
 		}
@@ -711,12 +703,16 @@ class IMGT_Admin_Model_Main {
 		}
 
 		// Blocked by .htaccess, firewall, or host?
-		$is_blocked = wp_remote_request( $url, array(
-			'method'     => $method,
-			'user-agent' => 'Imagify Tools',
-			'cookies'    => $_COOKIE, // WPCS: input var okay.
-			'sslverify'  => apply_filters( 'https_local_ssl_verify', false ),
-		) );
+		try {
+			$is_blocked = wp_remote_request( $url, array(
+				'method'     => $method,
+				'user-agent' => 'Imagify Tools',
+				'cookies'    => $_COOKIE, // WPCS: input var okay.
+				'sslverify'  => apply_filters( 'https_local_ssl_verify', false ),
+			) );
+		} catch ( Exception $e ) {
+			$is_blocked = new WP_Error( 'curl', $e->getMessage() );
+		}
 
 		if ( ! is_wp_error( $is_blocked ) ) {
 			$http_code  = wp_remote_retrieve_response_code( $is_blocked );
