@@ -400,6 +400,16 @@ class IMGT_Admin_Model_Main {
 				'value'     => '',
 				'more_info' => $blocking_link,
 			),
+			array(
+				/* translators: %s is a WP filter name. */
+				'label' => sprintf( __( 'Value of the filter %s', 'imagify-tools' ), '<code>https_ssl_verify</code>' ),
+				'value' => apply_filters( 'https_ssl_verify', false ) ? 'true' : 'false',
+			),
+			array(
+				/* translators: %s is a WP filter name. */
+				'label' => sprintf( __( 'Value of the filter %s', 'imagify-tools' ), '<code>https_local_ssl_verify</code>' ),
+				'value' => apply_filters( 'https_local_ssl_verify', false ) ? 'true' : 'false',
+			),
 		);
 
 		// Try to contact our servers.
