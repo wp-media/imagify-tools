@@ -550,6 +550,24 @@ class IMGT_Admin_Model_Main {
 			);
 		}
 
+		if ( function_exists( 'get_imagify_bulk_buffer_size' ) ) {
+			$sizes = array(
+				'wp'   => get_imagify_bulk_buffer_size(),
+				'File' => get_imagify_bulk_buffer_size( 1 ),
+			);
+
+			/** This filter is documented in /imagify/inc/functions/i18n.php. */
+			$sizes['wp'] = apply_filters( 'imagify_bulk_buffer_size', $sizes['wp'] );
+
+			/** This filter is documented in /imagify/inc/functions/i18n.php. */
+			$sizes = apply_filters( 'imagify_bulk_buffer_sizes', $sizes );
+
+			$attachments[] = array(
+				'label' => __( 'Number of parallel optimizations in bulk optimizer', 'imagify-tools' ),
+				'value' => $sizes,
+			);
+		}
+
 		$this->add_data_section( __( 'Attachments', 'imagify-tools' ), $attachments );
 	}
 
