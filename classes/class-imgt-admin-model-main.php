@@ -547,14 +547,6 @@ class IMGT_Admin_Model_Main {
 
 		$this->add_data_section( __( 'Various Tests and Values', 'imagify-tools' ), array(
 			array(
-				'label' => __( 'Your IP address', 'imagify-tools' ),
-				'value' => imagify_tools_get_ip(),
-			),
-			array(
-				'label' => __( 'Your user ID', 'imagify-tools' ),
-				'value' => get_current_user_id(),
-			),
-			array(
 				'label' => __( 'PHP version', 'imagify-tools' ),
 				'value' => PHP_VERSION,
 			),
@@ -590,6 +582,14 @@ class IMGT_Admin_Model_Main {
 				'compare'   => $this->is_ssl(),
 				/* translators: %s is a function name. */
 				'more_info' => is_ssl() !== $this->is_ssl() ? sprintf( __( 'The function %s returns a wrong result, it could be a problem related with the way SSL is implemented.', 'imagify-tools' ), '<code>is_ssl()</code>' ) : '',
+			),
+			array(
+				'label' => __( 'Your user ID', 'imagify-tools' ),
+				'value' => get_current_user_id(),
+			),
+			array(
+				'label' => __( 'Your IP address', 'imagify-tools' ),
+				'value' => imagify_tools_get_ip(),
 			),
 			array(
 				'label' => __( 'Settings', 'imagify-tools' ),
