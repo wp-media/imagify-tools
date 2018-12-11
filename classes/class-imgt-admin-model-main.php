@@ -370,9 +370,57 @@ class IMGT_Admin_Model_Main {
 		);
 
 		if ( function_exists( 'curl_version' ) ) {
+			$curl_array = curl_version();
+			$fields[]   = array(
+				'label'    => '<code>curl_version()</code>',
+				'value'    => $curl_array,
+				// 7.34.0 is most probably the oldest version supported (so far, 7.29.0 fails and 7.35.0 successes).
+				'is_error' => ! empty( $curl_array['version'] ) ? version_compare( $curl_array['version'], '7.34' ) < 0 : true,
+			);
+
+			$curl_features = array(
+				/**
+				 * CURL features. We probably don't need everything but it helps gather data when needed.
+				 *
+				 * @see https://curl.haxx.se/libcurl/c/curl_version_info.html
+				 */
+				'CURL_VERSION_ASYNCHDNS'    => '',
+				'CURL_VERSION_BROTLI'       => '',
+				'CURL_VERSION_CONV'         => '',
+				'CURL_VERSION_GSSNEGOTIATE' => '',
+				'CURL_VERSION_HTTP2'        => '',
+				'CURL_VERSION_HTTPS_PROXY'  => '',
+				'CURL_VERSION_IDN'          => '',
+				'CURL_VERSION_IPV6'         => '',
+				'CURL_VERSION_LARGEFILE'    => '',
+				'CURL_VERSION_LIBZ'         => '',
+				'CURL_VERSION_MULTI_SSL'    => '',
+				'CURL_VERSION_NTLM'         => '',
+				'CURL_VERSION_NTLM_WB'      => '',
+				'CURL_VERSION_PSL'          => '',
+				'CURL_VERSION_SPNEGO'       => '',
+				'CURL_VERSION_SSL'          => '',
+				'CURL_VERSION_TLSAUTH_SRP'  => '',
+				'CURL_VERSION_UNIX_SOCKETS' => '',
+			);
+
+			if ( isset( $curl_array['features'] ) ) {
+				foreach ( $curl_features as $feature => $value ) {
+					if ( defined( $feature ) ) {
+						$curl_features[ $feature ] = $curl_array['features'] & constant( $feature ) ? __( 'Available', 'imagify-tools' ) : __( 'Not available', 'imagify-tools' );
+					}
+				}
+			}
+
 			$fields[] = array(
-				'label' => '<code>curl_version()</code>',
-				'value' => curl_version(),
+				'label' => __( 'cURL features', 'imagify-tools' ),
+				'value' => $curl_features,
+			);
+		} else {
+			$fields[] = array(
+				'label'    => '<code>curl_version()</code>',
+				'value'    => __( 'The function does not exist', 'imagify-tools' ),
+				'is_error' => true,
 			);
 		}
 
