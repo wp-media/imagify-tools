@@ -547,6 +547,10 @@ class IMGT_Admin_Model_Main {
 
 		$this->add_data_section( __( 'Various Tests and Values', 'imagify-tools' ), array(
 			array(
+				'label' => __( 'Hosting Company', 'imagify-tools' ),
+				'value' => $this->get_hosting_company(),
+			),
+			array(
 				'label' => __( 'PHP version', 'imagify-tools' ),
 				'value' => PHP_VERSION,
 			),
@@ -907,6 +911,59 @@ class IMGT_Admin_Model_Main {
 		}
 
 		return $methods;
+	}
+
+	/**
+	 * Try to get the hosting company.
+	 *
+	 * @since  1.0.5
+	 * @access public
+	 * @author Grégory Viguier
+	 */
+	public function get_hosting_company() {
+		switch ( true ) {
+			case defined( 'FLYWHEEL_CONFIG_DIR' ):
+				return 'FlyWheel';
+
+			case class_exists( '\\WPaaS\\Plugin' ):
+				return 'GoDaddy';
+
+			case defined( 'DB_HOST' ) && strpos( DB_HOST, '.infomaniak.com' ) !== false:
+				return 'Infomaniak';
+
+			case isset( $_SERVER['KINSTA_CACHE_ZONE'] ):
+				return 'Kinsta';
+
+			case defined( 'O2SWITCH_VARNISH_PURGE_KEY' ):
+				return 'o2switch';
+
+			case class_exists( 'PagelyCachePurge' ):
+				return 'Pagely';
+
+			case defined( 'WP_NINUKIS_WP_NAME' ):
+				return 'Pressidium';
+
+			case class_exists( '\\Savvii\\Options' ):
+				return 'Savvii';
+
+			case class_exists( 'SG_CachePress_Environment' ):
+				return 'SiteGround';
+
+			case class_exists( 'WpeCommon' ):
+				return 'WP Engine';
+
+			case defined( 'DB_HOST' ) && strpos( DB_HOST, '.wpserveur.net' ) !== false:
+				return 'WPServeur';
+
+			case defined( 'WPCOMSH_VERSION' ):
+				return 'wordpress.com';
+
+			case ! empty( $_SERVER['SERVER_ADDR'] ) && ( '127.0.0.1' === $_SERVER['SERVER_ADDR'] || '::1' === $_SERVER['SERVER_ADDR'] ):
+				return 'localhost';
+
+			default:
+				return 'Unkown';
+		}
 	}
 
 	/**
