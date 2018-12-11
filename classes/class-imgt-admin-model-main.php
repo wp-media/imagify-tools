@@ -157,17 +157,17 @@ class IMGT_Admin_Model_Main {
 			),
 			array(
 				'label'     => 'FS_CHMOD_DIR',
-				'value'     => $this->to_octal( FS_CHMOD_DIR ) . ' (' . FS_CHMOD_DIR . ')',
-				'compare'   => $this->to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')',
+				'value'     => IMGT_Tools::to_octal( FS_CHMOD_DIR ) . ' (' . FS_CHMOD_DIR . ')',
+				'compare'   => IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')',
 				/* translators: %s is a value. */
-				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')</code>' ),
+				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')</code>' ),
 			),
 			array(
 				'label'     => 'FS_CHMOD_FILE',
-				'value'     => $this->to_octal( FS_CHMOD_FILE ) . ' (' . FS_CHMOD_FILE . ')',
-				'compare'   => $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')',
+				'value'     => IMGT_Tools::to_octal( FS_CHMOD_FILE ) . ' (' . FS_CHMOD_FILE . ')',
+				'compare'   => IMGT_Tools::to_octal( $chmod_file ) . ' (' . $chmod_file . ')',
 				/* translators: %s is a value. */
-				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
+				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . IMGT_Tools::to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
 			),
 		) );
 	}
@@ -283,7 +283,7 @@ class IMGT_Admin_Model_Main {
 
 		$args = array(
 			'path'       => $image_path,
-			'mime_types' => $this->get_mime_types( 'image' ),
+			'mime_types' => IMGT_Tools::get_mime_types( 'image' ),
 			'methods'    => $this->get_image_editor_methods(),
 		);
 
@@ -826,68 +826,6 @@ class IMGT_Admin_Model_Main {
 	/** Specific tools ========================================================================== */
 
 	/**
-	 * Get all mime types which could be optimized by Imagify.
-	 *
-	 * @since  1.0.2
-	 * @since  1.0.3 Added $type parameter.
-	 * @author Grégory Viguier
-	 *
-	 * @param  string $type One of 'image', 'not-image'. Any other value will return all mime types.
-	 * @return array        The mime types.
-	 */
-	public function get_mime_types( $type = null ) {
-		$mimes = array();
-
-		if ( 'not-image' !== $type ) {
-			$mimes = array(
-				'jpg|jpeg|jpe' => 'image/jpeg',
-				'png'          => 'image/png',
-				'gif'          => 'image/gif',
-			);
-		}
-
-		if ( 'image' !== $type ) {
-			$mimes['pdf'] = 'application/pdf';
-		}
-
-		return $mimes;
-	}
-
-	/**
-	 * Get post statuses related to attachments.
-	 *
-	 * @since  1.0.2
-	 * @author Grégory Viguier
-	 *
-	 * @return array The post statuses.
-	 */
-	public function get_post_statuses() {
-		static $statuses;
-
-		if ( function_exists( 'imagify_get_post_statuses' ) ) {
-			return imagify_get_post_statuses();
-		}
-
-		if ( isset( $statuses ) ) {
-			return $statuses;
-		}
-
-		$statuses = array(
-			'inherit' => 'inherit',
-			'private' => 'private',
-		);
-
-		$custom_statuses = get_post_stati( array( 'public' => true ) );
-		unset( $custom_statuses['publish'] );
-
-		if ( $custom_statuses ) {
-			$statuses = array_merge( $statuses, $custom_statuses );
-		}
-
-		return $statuses;
-	}
-
-	/**
 	 * Get the image editor.
 	 *
 	 * @since  1.0.3
@@ -909,7 +847,7 @@ class IMGT_Admin_Model_Main {
 
 		$args = array(
 			'path'       => $image_path,
-			'mime_types' => $this->get_mime_types( 'image' ),
+			'mime_types' => IMGT_Tools::get_mime_types( 'image' ),
 			'methods'    => $this->get_image_editor_methods(),
 		);
 
@@ -1067,13 +1005,13 @@ class IMGT_Admin_Model_Main {
 					$nodata_where"
 			);
 		} else {
-			$mime_types = $this->get_mime_types();
+			$mime_types = IMGT_Tools::get_mime_types();
 			$extensions = implode( '|', array_keys( $mime_types ) );
 			$extensions = explode( '|', $extensions );
 			$extensions = "OR ( LOWER( imrwpmt1.meta_value ) NOT LIKE '%." . implode( "' AND LOWER( imrwpmt1.meta_value ) NOT LIKE '%.", $extensions ) . "' )";
 			$mime_types = esc_sql( $mime_types );
 			$mime_types = "'" . implode( "','", $mime_types ) . "'";
-			$statuses   = esc_sql( $this->get_post_statuses() );
+			$statuses   = esc_sql( IMGT_Tools::get_post_statuses() );
 			$statuses   = "'" . implode( "','", $statuses ) . "'";
 
 			$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
@@ -1197,7 +1135,7 @@ class IMGT_Admin_Model_Main {
 	protected function get_clear_cache_link( $transient_name, $clear_action, $args = array() ) {
 		$link = ' <a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( $this->get_clear_cache_url( $clear_action, $args ) ) . '">' . __( 'Clear cache', 'imagify-tools' ) . '</a>';
 
-		$transient_timeout = $this->get_transient_timeout( $transient_name );
+		$transient_timeout = IMGT_Tools::get_transient_timeout( $transient_name );
 		$current_time      = time();
 
 		if ( ! $transient_timeout || $transient_timeout < $current_time ) {
@@ -1247,44 +1185,5 @@ class IMGT_Admin_Model_Main {
 			return true;
 		}
 		return is_ssl();
-	}
-
-	/**
-	 * Get the value of a site transient timeout expiration.
-	 *
-	 * @since  1.0
-	 * @author Grégory Viguier
-	 *
-	 * @param  string $transient Transient name. Expected to not be SQL-escaped.
-	 * @return int               Expiration time in seconds.
-	 */
-	protected function get_transient_timeout( $transient ) {
-		return (int) get_site_option( '_site_transient_timeout_' . $transient );
-	}
-
-	/**
-	 * Transform an "octal" integer to a "readable" string like "0644".
-	 *
-	 * Reminder:
-	 * `$perm = fileperms( $file );`
-	 *
-	 *  WHAT                                         | TYPE   | FILE   | FOLDER |
-	 * ----------------------------------------------+--------+--------+--------|
-	 * `$perm`                                       | int    | 33188  | 16877  |
-	 * `substr( decoct( $perm ), -4 )`               | string | '0644' | '0755' |
-	 * `substr( sprintf( '%o', $perm ), -4 )`        | string | '0644' | '0755' |
-	 * `$perm & 0777`                                | int    | 420    | 493    |
-	 * `decoct( $perm & 0777 )`                      | string | '644'  | '755'  |
-	 * `substr( sprintf( '%o', $perm & 0777 ), -4 )` | string | '644'  | '755'  |
-	 *
-	 * @since  1.0
-	 * @author Grégory Viguier
-	 * @source SecuPress
-	 *
-	 * @param  int $int An "octal" integer.
-	 * @return string
-	 */
-	protected function to_octal( $int ) {
-		return substr( '0' . decoct( $int ), -4 );
 	}
 }
