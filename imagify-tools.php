@@ -46,7 +46,7 @@ function imagify_tools_init() {
 	require_once IMAGIFY_TOOLS_CLASSES_PATH . 'class-imagify-tools.php';
 
 	// Initiate the main class.
-	add_action( 'plugins_loaded', array( Imagify_Tools::get_instance(), 'init' ), 20 );
+	Imagify_Tools::get_instance()->init();
 }
 
 imagify_tools_init();

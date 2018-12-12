@@ -14,7 +14,7 @@ class Imagify_Tools {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0';
+	const VERSION = '1.1';
 
 	/**
 	 * Path to the plugin file.
@@ -92,6 +92,21 @@ class Imagify_Tools {
 	 * @author Grégory Viguier
 	 */
 	public function init() {
+		if ( ! self::is_muplugin() ) {
+			register_activation_hook( self::get_plugin_file(), array( $this, 'activation' ) );
+		}
+
+		add_action( 'plugins_loaded', array( $this, 'load_plugin' ), 20 );
+		add_action( 'admin_init',     array( $this, 'maybe_redirect' ), 2 );
+	}
+
+	/**
+	 * Load everything.
+	 *
+	 * @since  1.0.5
+	 * @author Grégory Viguier
+	 */
+	public function load_plugin() {
 		static $done = false;
 
 		if ( $done ) {
@@ -135,6 +150,61 @@ class Imagify_Tools {
 		 * @author Grégory Viguier
 		 */
 		do_action( 'imagify_tools_loaded' );
+	}
+
+	/**
+	 * What to do on plugin activation.
+	 *
+	 * @since  1.0.5
+	 * @access public
+	 * @author Grégory Viguier
+	 */
+	public function activation() {
+		// Set the library mode to list.
+		update_user_option( get_current_user_id(), 'media_library_mode', 'list' );
+
+		// Redirect to the plugin's page.
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			return;
+		}
+
+		set_transient( 'imgt_activation', 1, 60 );
+	}
+
+	/**
+	 * Redirect the user on plugin activation.
+	 *
+	 * @since  1.0.5
+	 * @access public
+	 * @author Grégory Viguier
+	 */
+	public function maybe_redirect() {
+		global $pagenow;
+
+		if ( 'plugins.php' !== $pagenow ) {
+			return;
+		}
+
+		if ( ! current_user_can( imagify_tools_get_capacity() ) ) {
+			return;
+		}
+
+		if ( ! get_transient( 'imgt_activation' ) ) {
+			return;
+		}
+
+		delete_transient( 'imgt_activation' );
+
+		$admin_url = 'admin.php?page=' . IMGT_Admin_Pages::MAIN_PAGE_SLUG;
+
+		if ( is_network_admin() ) {
+			$admin_url = network_admin_url( $admin_url );
+		} else {
+			$admin_url = admin_url( $admin_url );
+		}
+
+		wp_safe_redirect( esc_url_raw( $admin_url ) );
+		die();
 	}
 
 	/**
