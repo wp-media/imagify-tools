@@ -758,6 +758,7 @@ class IMGT_Admin_Model_Main {
 	 */
 	protected function are_requests_blocked( $url, $method = 'GET' ) {
 		static $infos = array();
+		static $hosts = array();
 
 		$method         = strtoupper( $method );
 		$transient_name = self::REQUEST_CACHE_PREFIX . substr( md5( "$url|$method" ), 0, 10 );
@@ -782,13 +783,34 @@ class IMGT_Admin_Model_Main {
 			$infos[ $transient_name ][] = __( 'Blocked internally.', 'imagify-tools' );
 		}
 
+		if ( ! $hosts ) {
+			$hosts    = array(
+				wp_parse_url( admin_url() ),
+				wp_parse_url( site_url() ),
+			);
+			$hosts[0] = $hosts[0]['host'];
+			$hosts[1] = $hosts[1]['host'];
+			$hosts    = array_flip( $hosts );
+		}
+
+		$url_host = wp_parse_url( $url );
+		$url_host = $url_host['host'];
+
+		if ( isset( $hosts[ $url_host ] ) ) {
+			// The request is "local".
+			$sslverify = apply_filters( 'https_local_ssl_verify', false );
+		} else {
+			$sslverify = apply_filters( 'https_ssl_verify', false );
+		}
+
 		// Blocked by .htaccess, firewall, or host?
 		try {
 			$is_blocked = wp_remote_request( $url, array(
 				'method'     => $method,
 				'user-agent' => 'Imagify Tools',
 				'cookies'    => $_COOKIE, // WPCS: input var okay.
-				'sslverify'  => apply_filters( 'https_local_ssl_verify', false ),
+				'sslverify'  => $sslverify,
+				'timeout'    => 10,
 			) );
 		} catch ( Exception $e ) {
 			$is_blocked = new WP_Error( 'curl', $e->getMessage() );
