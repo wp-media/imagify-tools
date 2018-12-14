@@ -969,6 +969,9 @@ class IMGT_Admin_Model_Main {
 			case defined( 'O2SWITCH_VARNISH_PURGE_KEY' ):
 				return 'o2switch';
 
+			case isset( $_SERVER['ONECOM_DOCUMENT_ROOT'] ):
+				return 'One.com';
+
 			case class_exists( 'PagelyCachePurge' ):
 				return 'Pagely';
 
@@ -994,7 +997,7 @@ class IMGT_Admin_Model_Main {
 				return 'localhost';
 
 			default:
-				return 'Unkown';
+				return 'Unknown';
 		}
 	}
 
