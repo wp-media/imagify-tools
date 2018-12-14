@@ -15,7 +15,7 @@ class IMGT_Attachments_Metas {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.1';
+	const VERSION = '1.1.1';
 
 	/**
 	 * Meta box ID.
@@ -249,15 +249,23 @@ class IMGT_Attachments_Metas {
 			$files_owner = '';
 
 			if ( $file_stats ) {
-				$file_owner = posix_getpwuid( $file_stats['uid'] );
-				$file_owner = $file_owner['name'] . ' (' . $file_owner['uid'] . ')';
+				$file_owner = $file_stats['uid'];
+
+				if ( function_exists( 'posix_getpwuid' ) ) {
+					$file_owner = posix_getpwuid( $file_owner );
+					$file_owner = $file_owner['name'] . ' (' . $file_owner['uid'] . ')';
+				}
 
 				// `index.php`
 				$files_stats = @stat( ABSPATH . 'index.php' );
 
 				if ( $files_stats ) {
-					$files_owner = posix_getpwuid( $files_stats['uid'] );
-					$files_owner = $files_owner['name'] . ' (' . $files_owner['uid'] . ')';
+					$files_owner = $files_stats['uid'];
+
+					if ( function_exists( 'posix_getpwuid' ) ) {
+						$files_owner = posix_getpwuid( $files_owner );
+						$files_owner = $files_owner['name'] . ' (' . $files_owner['uid'] . ')';
+					}
 				}
 			}
 
