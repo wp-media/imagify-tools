@@ -157,17 +157,17 @@ class IMGT_Admin_Model_Main {
 			),
 			array(
 				'label'     => 'FS_CHMOD_DIR',
-				'value'     => $this->to_octal( FS_CHMOD_DIR ) . ' (' . FS_CHMOD_DIR . ')',
-				'compare'   => $this->to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')',
+				'value'     => IMGT_Tools::to_octal( FS_CHMOD_DIR ) . ' (' . FS_CHMOD_DIR . ')',
+				'compare'   => IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')',
 				/* translators: %s is a value. */
-				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')</code>' ),
+				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')</code>' ),
 			),
 			array(
 				'label'     => 'FS_CHMOD_FILE',
-				'value'     => $this->to_octal( FS_CHMOD_FILE ) . ' (' . FS_CHMOD_FILE . ')',
-				'compare'   => $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')',
+				'value'     => IMGT_Tools::to_octal( FS_CHMOD_FILE ) . ' (' . FS_CHMOD_FILE . ')',
+				'compare'   => IMGT_Tools::to_octal( $chmod_file ) . ' (' . $chmod_file . ')',
 				/* translators: %s is a value. */
-				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . $this->to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
+				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . IMGT_Tools::to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
 			),
 		) );
 	}
@@ -283,7 +283,7 @@ class IMGT_Admin_Model_Main {
 
 		$args = array(
 			'path'       => $image_path,
-			'mime_types' => $this->get_mime_types( 'image' ),
+			'mime_types' => IMGT_Tools::get_mime_types( 'image' ),
 			'methods'    => $this->get_image_editor_methods(),
 		);
 
@@ -370,9 +370,57 @@ class IMGT_Admin_Model_Main {
 		);
 
 		if ( function_exists( 'curl_version' ) ) {
+			$curl_array = curl_version();
+			$fields[]   = array(
+				'label'    => '<code>curl_version()</code>',
+				'value'    => $curl_array,
+				// 7.34.0 is most probably the oldest version supported (so far, 7.29.0 fails and 7.35.0 successes).
+				'is_error' => ! empty( $curl_array['version'] ) ? version_compare( $curl_array['version'], '7.34' ) < 0 : true,
+			);
+
+			$curl_features = array(
+				/**
+				 * CURL features. We probably don't need everything but it helps gather data when needed.
+				 *
+				 * @see https://curl.haxx.se/libcurl/c/curl_version_info.html
+				 */
+				'CURL_VERSION_ASYNCHDNS'    => '',
+				'CURL_VERSION_BROTLI'       => '',
+				'CURL_VERSION_CONV'         => '',
+				'CURL_VERSION_GSSNEGOTIATE' => '',
+				'CURL_VERSION_HTTP2'        => '',
+				'CURL_VERSION_HTTPS_PROXY'  => '',
+				'CURL_VERSION_IDN'          => '',
+				'CURL_VERSION_IPV6'         => '',
+				'CURL_VERSION_LARGEFILE'    => '',
+				'CURL_VERSION_LIBZ'         => '',
+				'CURL_VERSION_MULTI_SSL'    => '',
+				'CURL_VERSION_NTLM'         => '',
+				'CURL_VERSION_NTLM_WB'      => '',
+				'CURL_VERSION_PSL'          => '',
+				'CURL_VERSION_SPNEGO'       => '',
+				'CURL_VERSION_SSL'          => '',
+				'CURL_VERSION_TLSAUTH_SRP'  => '',
+				'CURL_VERSION_UNIX_SOCKETS' => '',
+			);
+
+			if ( isset( $curl_array['features'] ) ) {
+				foreach ( $curl_features as $feature => $value ) {
+					if ( defined( $feature ) ) {
+						$curl_features[ $feature ] = $curl_array['features'] & constant( $feature ) ? __( 'Available', 'imagify-tools' ) : __( 'Not available', 'imagify-tools' );
+					}
+				}
+			}
+
 			$fields[] = array(
-				'label' => '<code>curl_version()</code>',
-				'value' => curl_version(),
+				'label' => __( 'cURL features', 'imagify-tools' ),
+				'value' => $curl_features,
+			);
+		} else {
+			$fields[] = array(
+				'label'    => '<code>curl_version()</code>',
+				'value'    => __( 'The function does not exist', 'imagify-tools' ),
+				'is_error' => true,
 			);
 		}
 
@@ -386,72 +434,74 @@ class IMGT_Admin_Model_Main {
 	 * @author Grégory Viguier
 	 */
 	public function add_requests_section() {
+		// Link to switch between async and blocking requests.
 		$blocking_link = imagify_tools_get_site_transient( 'imgt_blocking_requests' ) ? __( 'Make optimization back to async', 'imagify-tools' ) : __( 'Make optimization non async', 'imagify-tools' );
-		$blocking_link = '<a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ), IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ) ) . '">' . $blocking_link . '</a>';
-		$ajax_url      = admin_url( 'admin-ajax.php?action=' . IMGT_Admin_Post::get_action( 'test' ) );
-		$post_url      = admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'test' ) );
-		$requests      = array(
+		$blocking_link = sprintf(
+			'<a class="imgt-button imgt-button-ternary imgt-button-mini" href="%s">%s</a>',
+			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ), IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ) ),
+			$blocking_link
+		);
+
+		$requests = array(
 			array(
 				'label'     => '',
 				'value'     => '',
 				'more_info' => $blocking_link,
 			),
 			array(
-				/* translators: %s is a URL. */
-				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>imagify.io</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( 'https://imagify.io' ),
-				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( 'https://imagify.io' ) . $this->get_clear_request_cache_link( 'https://imagify.io' ),
+				/* translators: %s is a WP filter name. */
+				'label' => sprintf( __( 'Value of the filter %s', 'imagify-tools' ), '<code>https_ssl_verify</code>' ),
+				'value' => apply_filters( 'https_ssl_verify', false ) ? 'true' : 'false',
 			),
 			array(
-				/* translators: %s is a URL. */
-				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>app.imagify.io</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( 'https://app.imagify.io/api/version/' ),
-				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( 'https://app.imagify.io/api/version/' ) . $this->get_clear_request_cache_link( 'https://app.imagify.io/api/version/' ),
-			),
-			array(
-				/* translators: %s is a URL. */
-				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>s2-amz-par.imagify.io</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( 'https://s2-amz-par.imagify.io/wpm.png' ),
-				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( 'https://s2-amz-par.imagify.io/wpm.png' ) . $this->get_clear_request_cache_link( 'https://s2-amz-par.imagify.io/wpm.png' ),
-			),
-			array(
-				/* translators: %s is a URL. */
-				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>storage.imagify.io</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( 'http://storage.imagify.io/images/index.png' ),
-				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( 'http://storage.imagify.io/images/index.png' ) . $this->get_clear_request_cache_link( 'http://storage.imagify.io/images/index.png' ),
-			),
-			array(
-				/* translators: %s is a URL. */
-				'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>' . preg_replace( '@^https?://@', '', admin_url( 'admin-ajax.php' ) ) . '</code>' ),
-				'value'     => (bool) $this->are_requests_blocked( $ajax_url, 'POST' ),
-				'compare'   => false,
-				'more_info' => $this->are_requests_blocked( $ajax_url, 'POST' ) . $this->get_clear_request_cache_link( $ajax_url, 'POST' ),
+				/* translators: %s is a WP filter name. */
+				'label' => sprintf( __( 'Value of the filter %s', 'imagify-tools' ), '<code>https_local_ssl_verify</code>' ),
+				'value' => apply_filters( 'https_local_ssl_verify', false ) ? 'true' : 'false',
 			),
 		);
 
-		if ( $this->are_requests_blocked( $ajax_url, 'POST' ) && preg_match( '@^https://@', $ajax_url ) ) {
-			/* translators: %s is a URL. */
-			$requests[4]['label'] = sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>' . admin_url( 'admin-ajax.php' ) . '</code>' );
+		// Try to contact our servers.
+		$imagify_urls = array(
+			'https://imagify.io',
+			'https://app.imagify.io/api/version/',
+			'https://s2-amz-par.imagify.io/wpm.png',
+			'http://storage.imagify.io/images/index.png',
+		);
 
-			$urls = array(
-				set_url_scheme( $post_url, 'https' ),
-				set_url_scheme( site_url( 'wp-cron.php' ), 'https' ),
-				set_url_scheme( $ajax_url, 'http' ),
-				set_url_scheme( $post_url, 'http' ),
-				set_url_scheme( site_url( 'wp-cron.php' ), 'http' ),
+		foreach ( $imagify_urls as $imagify_url ) {
+			// The 2nd parameter in wp_parse_url() was introduced in WP 4.7, we can't use it.
+			$url_domain = wp_parse_url( $imagify_url );
+			$url_domain = $url_domain['host'];
+			$requests[] = array(
+				/* translators: 1 is $_GET or $_POST, 2 is a URL. */
+				'label'     => sprintf( __( '%1$s requests to %2$s blocked', 'imagify-tools' ), '<code>$_GET</code>', '<code>' . $url_domain . '</code>' ),
+				'value'     => (bool) $this->are_requests_blocked( $imagify_url, 'GET' ),
+				'compare'   => false,
+				'more_info' => $this->are_requests_blocked( $imagify_url, 'GET' ) . $this->get_clear_request_cache_link( $imagify_url, 'GET' ),
 			);
+		}
 
-			foreach ( $urls as $url ) {
+		// Test for local URLs: admin-ajax.php, admin-post.php, and wp-cron.php.
+		$local_urls = array(
+			admin_url( 'admin-ajax.php?action=' . IMGT_Admin_Post::get_action( 'test' ) ),
+			admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'test' ) ),
+			site_url( 'wp-cron.php' ),
+		);
+
+		foreach ( $local_urls as $local_url ) {
+			$test_urls = (array) $local_url;
+
+			if ( $this->are_requests_blocked( $local_url, 'POST' ) ) {
+				$test_urls[] = preg_match( '@^https://@', $local_url ) ? set_url_scheme( $local_url, 'http' ) : set_url_scheme( $local_url, 'https' );
+			}
+
+			foreach ( $test_urls as $test_url ) {
 				$requests[] = array(
-					/* translators: %s is a URL. */
-					'label'     => sprintf( __( 'Requests to %s blocked', 'imagify-tools' ), '<code>' . $url . '</code>' ),
-					'value'     => (bool) $this->are_requests_blocked( $url, 'POST' ),
+					/* translators: 1 is $_GET or $_POST, 2 is a URL. */
+					'label'     => sprintf( __( '%1$s requests to %2$s blocked', 'imagify-tools' ), '<code>$_POST</code>', '<code>' . strtok( $test_url, '?' ) . '</code>' ),
+					'value'     => (bool) $this->are_requests_blocked( $test_url, 'POST' ),
 					'compare'   => false,
-					'more_info' => $this->are_requests_blocked( $url, 'POST' ) . $this->get_clear_request_cache_link( $url, 'POST' ),
+					'more_info' => $this->are_requests_blocked( $test_url, 'POST' ) . $this->get_clear_request_cache_link( $test_url, 'POST' ),
 				);
 			}
 		}
@@ -497,6 +547,24 @@ class IMGT_Admin_Model_Main {
 				'value'     => $this->count_orphan_files(),
 				'is_error'  => $this->count_orphan_files() > 0,
 				'more_info' => $this->get_clear_cache_link( 'imgt_orphan_files', 'clear_orphan_files_cache' ),
+			);
+		}
+
+		if ( function_exists( 'get_imagify_bulk_buffer_size' ) ) {
+			$sizes = array(
+				'wp'   => get_imagify_bulk_buffer_size(),
+				'File' => get_imagify_bulk_buffer_size( 1 ),
+			);
+
+			/** This filter is documented in /imagify/inc/functions/i18n.php. */
+			$sizes['wp'] = apply_filters( 'imagify_bulk_buffer_size', $sizes['wp'] );
+
+			/** This filter is documented in /imagify/inc/functions/i18n.php. */
+			$sizes = apply_filters( 'imagify_bulk_buffer_sizes', $sizes );
+
+			$attachments[] = array(
+				'label' => __( 'Number of parallel optimizations in bulk optimizer', 'imagify-tools' ),
+				'value' => $sizes,
 			);
 		}
 
@@ -547,12 +615,8 @@ class IMGT_Admin_Model_Main {
 
 		$this->add_data_section( __( 'Various Tests and Values', 'imagify-tools' ), array(
 			array(
-				'label' => __( 'Your IP address', 'imagify-tools' ),
-				'value' => imagify_tools_get_ip(),
-			),
-			array(
-				'label' => __( 'Your user ID', 'imagify-tools' ),
-				'value' => get_current_user_id(),
+				'label' => __( 'Hosting Company', 'imagify-tools' ),
+				'value' => $this->get_hosting_company(),
 			),
 			array(
 				'label' => __( 'PHP version', 'imagify-tools' ),
@@ -590,6 +654,14 @@ class IMGT_Admin_Model_Main {
 				'compare'   => $this->is_ssl(),
 				/* translators: %s is a function name. */
 				'more_info' => is_ssl() !== $this->is_ssl() ? sprintf( __( 'The function %s returns a wrong result, it could be a problem related with the way SSL is implemented.', 'imagify-tools' ), '<code>is_ssl()</code>' ) : '',
+			),
+			array(
+				'label' => __( 'Your user ID', 'imagify-tools' ),
+				'value' => get_current_user_id(),
+			),
+			array(
+				'label' => __( 'Your IP address', 'imagify-tools' ),
+				'value' => imagify_tools_get_ip(),
 			),
 			array(
 				'label' => __( 'Settings', 'imagify-tools' ),
@@ -686,6 +758,7 @@ class IMGT_Admin_Model_Main {
 	 */
 	protected function are_requests_blocked( $url, $method = 'GET' ) {
 		static $infos = array();
+		static $hosts = array();
 
 		$method         = strtoupper( $method );
 		$transient_name = self::REQUEST_CACHE_PREFIX . substr( md5( "$url|$method" ), 0, 10 );
@@ -710,13 +783,38 @@ class IMGT_Admin_Model_Main {
 			$infos[ $transient_name ][] = __( 'Blocked internally.', 'imagify-tools' );
 		}
 
+		if ( ! $hosts ) {
+			$hosts    = array(
+				wp_parse_url( admin_url() ),
+				wp_parse_url( site_url() ),
+			);
+			$hosts[0] = $hosts[0]['host'];
+			$hosts[1] = $hosts[1]['host'];
+			$hosts    = array_flip( $hosts );
+		}
+
+		$url_host = wp_parse_url( $url );
+		$url_host = $url_host['host'];
+
+		if ( isset( $hosts[ $url_host ] ) ) {
+			// The request is "local".
+			$sslverify = apply_filters( 'https_local_ssl_verify', false );
+		} else {
+			$sslverify = apply_filters( 'https_ssl_verify', false );
+		}
+
 		// Blocked by .htaccess, firewall, or host?
-		$is_blocked = wp_remote_request( $url, array(
-			'method'     => $method,
-			'user-agent' => 'Imagify Tools',
-			'cookies'    => $_COOKIE, // WPCS: input var okay.
-			'sslverify'  => apply_filters( 'https_local_ssl_verify', false ),
-		) );
+		try {
+			$is_blocked = wp_remote_request( $url, array(
+				'method'     => $method,
+				'user-agent' => 'Imagify Tools',
+				'cookies'    => $_COOKIE, // WPCS: input var okay.
+				'sslverify'  => $sslverify,
+				'timeout'    => 10,
+			) );
+		} catch ( Exception $e ) {
+			$is_blocked = new WP_Error( 'curl', $e->getMessage() );
+		}
 
 		if ( ! is_wp_error( $is_blocked ) ) {
 			$http_code  = wp_remote_retrieve_response_code( $is_blocked );
@@ -768,68 +866,6 @@ class IMGT_Admin_Model_Main {
 	/** Specific tools ========================================================================== */
 
 	/**
-	 * Get all mime types which could be optimized by Imagify.
-	 *
-	 * @since  1.0.2
-	 * @since  1.0.3 Added $type parameter.
-	 * @author Grégory Viguier
-	 *
-	 * @param  string $type One of 'image', 'not-image'. Any other value will return all mime types.
-	 * @return array        The mime types.
-	 */
-	public function get_mime_types( $type = null ) {
-		$mimes = array();
-
-		if ( 'not-image' !== $type ) {
-			$mimes = array(
-				'jpg|jpeg|jpe' => 'image/jpeg',
-				'png'          => 'image/png',
-				'gif'          => 'image/gif',
-			);
-		}
-
-		if ( 'image' !== $type ) {
-			$mimes['pdf'] = 'application/pdf';
-		}
-
-		return $mimes;
-	}
-
-	/**
-	 * Get post statuses related to attachments.
-	 *
-	 * @since  1.0.2
-	 * @author Grégory Viguier
-	 *
-	 * @return array The post statuses.
-	 */
-	public function get_post_statuses() {
-		static $statuses;
-
-		if ( function_exists( 'imagify_get_post_statuses' ) ) {
-			return imagify_get_post_statuses();
-		}
-
-		if ( isset( $statuses ) ) {
-			return $statuses;
-		}
-
-		$statuses = array(
-			'inherit' => 'inherit',
-			'private' => 'private',
-		);
-
-		$custom_statuses = get_post_stati( array( 'public' => true ) );
-		unset( $custom_statuses['publish'] );
-
-		if ( $custom_statuses ) {
-			$statuses = array_merge( $statuses, $custom_statuses );
-		}
-
-		return $statuses;
-	}
-
-	/**
 	 * Get the image editor.
 	 *
 	 * @since  1.0.3
@@ -851,7 +887,7 @@ class IMGT_Admin_Model_Main {
 
 		$args = array(
 			'path'       => $image_path,
-			'mime_types' => $this->get_mime_types( 'image' ),
+			'mime_types' => IMGT_Tools::get_mime_types( 'image' ),
 			'methods'    => $this->get_image_editor_methods(),
 		);
 
@@ -910,6 +946,62 @@ class IMGT_Admin_Model_Main {
 	}
 
 	/**
+	 * Try to get the hosting company.
+	 *
+	 * @since  1.0.5
+	 * @access public
+	 * @author Grégory Viguier
+	 */
+	public function get_hosting_company() {
+		switch ( true ) {
+			case defined( 'FLYWHEEL_CONFIG_DIR' ):
+				return 'FlyWheel';
+
+			case class_exists( '\\WPaaS\\Plugin' ):
+				return 'GoDaddy';
+
+			case defined( 'DB_HOST' ) && strpos( DB_HOST, '.infomaniak.com' ) !== false:
+				return 'Infomaniak';
+
+			case isset( $_SERVER['KINSTA_CACHE_ZONE'] ):
+				return 'Kinsta';
+
+			case defined( 'O2SWITCH_VARNISH_PURGE_KEY' ):
+				return 'o2switch';
+
+			case isset( $_SERVER['ONECOM_DOCUMENT_ROOT'] ):
+				return 'One.com';
+
+			case class_exists( 'PagelyCachePurge' ):
+				return 'Pagely';
+
+			case defined( 'WP_NINUKIS_WP_NAME' ):
+				return 'Pressidium';
+
+			case class_exists( '\\Savvii\\Options' ):
+				return 'Savvii';
+
+			case class_exists( 'SG_CachePress_Environment' ):
+				return 'SiteGround';
+
+			case class_exists( 'WpeCommon' ):
+				return 'WP Engine';
+
+			case defined( 'DB_HOST' ) && strpos( DB_HOST, '.wpserveur.net' ) !== false:
+				return 'WPServeur';
+
+			case defined( 'WPCOMSH_VERSION' ):
+				return 'wordpress.com';
+
+			case ! empty( $_SERVER['SERVER_ADDR'] ) && ( '127.0.0.1' === $_SERVER['SERVER_ADDR'] || '::1' === $_SERVER['SERVER_ADDR'] ):
+				return 'localhost';
+
+			default:
+				return 'Unknown';
+		}
+	}
+
+	/**
 	 * Get the number of attachment where the post meta '_wp_attached_file' can't be worked with.
 	 *
 	 * @since  1.0.2
@@ -956,13 +1048,13 @@ class IMGT_Admin_Model_Main {
 					$nodata_where"
 			);
 		} else {
-			$mime_types = $this->get_mime_types();
+			$mime_types = IMGT_Tools::get_mime_types();
 			$extensions = implode( '|', array_keys( $mime_types ) );
 			$extensions = explode( '|', $extensions );
 			$extensions = "OR ( LOWER( imrwpmt1.meta_value ) NOT LIKE '%." . implode( "' AND LOWER( imrwpmt1.meta_value ) NOT LIKE '%.", $extensions ) . "' )";
 			$mime_types = esc_sql( $mime_types );
 			$mime_types = "'" . implode( "','", $mime_types ) . "'";
-			$statuses   = esc_sql( $this->get_post_statuses() );
+			$statuses   = esc_sql( IMGT_Tools::get_post_statuses() );
 			$statuses   = "'" . implode( "','", $statuses ) . "'";
 
 			$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
@@ -1086,7 +1178,7 @@ class IMGT_Admin_Model_Main {
 	protected function get_clear_cache_link( $transient_name, $clear_action, $args = array() ) {
 		$link = ' <a class="imgt-button imgt-button-ternary imgt-button-mini" href="' . esc_url( $this->get_clear_cache_url( $clear_action, $args ) ) . '">' . __( 'Clear cache', 'imagify-tools' ) . '</a>';
 
-		$transient_timeout = $this->get_transient_timeout( $transient_name );
+		$transient_timeout = IMGT_Tools::get_transient_timeout( $transient_name );
 		$current_time      = time();
 
 		if ( ! $transient_timeout || $transient_timeout < $current_time ) {
@@ -1136,44 +1228,5 @@ class IMGT_Admin_Model_Main {
 			return true;
 		}
 		return is_ssl();
-	}
-
-	/**
-	 * Get the value of a site transient timeout expiration.
-	 *
-	 * @since  1.0
-	 * @author Grégory Viguier
-	 *
-	 * @param  string $transient Transient name. Expected to not be SQL-escaped.
-	 * @return int               Expiration time in seconds.
-	 */
-	protected function get_transient_timeout( $transient ) {
-		return (int) get_site_option( '_site_transient_timeout_' . $transient );
-	}
-
-	/**
-	 * Transform an "octal" integer to a "readable" string like "0644".
-	 *
-	 * Reminder:
-	 * `$perm = fileperms( $file );`
-	 *
-	 *  WHAT                                         | TYPE   | FILE   | FOLDER |
-	 * ----------------------------------------------+--------+--------+--------|
-	 * `$perm`                                       | int    | 33188  | 16877  |
-	 * `substr( decoct( $perm ), -4 )`               | string | '0644' | '0755' |
-	 * `substr( sprintf( '%o', $perm ), -4 )`        | string | '0644' | '0755' |
-	 * `$perm & 0777`                                | int    | 420    | 493    |
-	 * `decoct( $perm & 0777 )`                      | string | '644'  | '755'  |
-	 * `substr( sprintf( '%o', $perm & 0777 ), -4 )` | string | '644'  | '755'  |
-	 *
-	 * @since  1.0
-	 * @author Grégory Viguier
-	 * @source SecuPress
-	 *
-	 * @param  int $int An "octal" integer.
-	 * @return string
-	 */
-	protected function to_octal( $int ) {
-		return substr( '0' . decoct( $int ), -4 );
 	}
 }
