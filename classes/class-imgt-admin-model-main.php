@@ -93,10 +93,11 @@ class IMGT_Admin_Model_Main {
 		/**
 		 * Chmod and backup dir.
 		 */
-		$chmod_dir        = fileperms( ABSPATH ) & 0777 | 0755;
-		$chmod_file       = fileperms( ABSPATH . 'index.php' ) & 0777 | 0644;
-		$backup_dir       = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
-		$imagify_settings = get_site_option( 'imagify_settings' );
+		$chmod_dir         = fileperms( ABSPATH ) & 0777 | 0755;
+		$chmod_file        = fileperms( ABSPATH . 'index.php' ) & 0777 | 0644;
+		$backup_dir        = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
+		$backup_dir_exists = file_exists( $backup_dir ) && wp_is_writable( $backup_dir );
+		$imagify_settings  = get_site_option( 'imagify_settings' );
 
 		$this->add_data_section( __( 'WordPress Filesystem', 'imagify-tools' ), array(
 			array(
@@ -151,8 +152,8 @@ class IMGT_Admin_Model_Main {
 			),
 			array(
 				'label'     => __( 'Backups folder exists and is writable', 'imagify-tools' ),
-				'value'     => file_exists( $backup_dir ) && wp_is_writable( $backup_dir ),
-				'compare'   => ! empty( $imagify_settings['backup'] ),
+				'value'     => $backup_dir_exists,
+				'is_error'  => ! empty( $imagify_settings['backup'] ) ? ! $backup_dir_exists : false,
 				'more_info' => ! empty( $imagify_settings['backup'] ) ? __( 'Backup is enabled.', 'imagify-tools' ) : __( 'No need, backup is disabled.', 'imagify-tools' ),
 			),
 			array(
