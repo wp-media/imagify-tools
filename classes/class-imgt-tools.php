@@ -15,7 +15,7 @@ class IMGT_Tools {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0';
+	const VERSION = '1.1';
 
 	/**
 	 * Get the value of a site transient timeout expiration.
@@ -119,5 +119,69 @@ class IMGT_Tools {
 		}
 
 		return $statuses;
+	}
+
+	/**
+	 * Get size information for all currently registered thumbnail sizes.
+	 *
+	 * @since  1.0.6
+	 * @access public
+	 * @author Grégory Viguier
+	 *
+	 * @return array Data for all currently registered thumbnail sizes (width, height, crop, name).
+	 */
+	public static function get_thumbnail_sizes() {
+		static $sizes;
+
+		if ( isset( $sizes ) ) {
+			return $sizes;
+		}
+
+		if ( function_exists( 'get_imagify_thumbnail_sizes' ) ) {
+			$sizes = get_imagify_thumbnail_sizes();
+			return $sizes;
+		}
+
+		// All image size names.
+		$sizes = get_intermediate_image_sizes();
+		$sizes = array_flip( $sizes );
+		// Additional image size attributes.
+		$additional_sizes = wp_get_additional_image_sizes();
+
+		// Create the full array with sizes and crop info.
+		foreach ( $sizes as $size_name => $s ) {
+			$sizes[ $size_name ] = array(
+				'width'  => '',
+				'height' => '',
+				'crop'   => false,
+				'name'   => $size_name,
+			);
+
+			if ( isset( $additional_sizes[ $size_name ]['width'] ) ) {
+				// For theme-added sizes.
+				$sizes[ $size_name ]['width'] = (int) $additional_sizes[ $size_name ]['width'];
+			} else {
+				// For default sizes set in options.
+				$sizes[ $size_name ]['width'] = (int) get_option( "{$size_name}_size_w" );
+			}
+
+			if ( isset( $additional_sizes[ $size_name ]['height'] ) ) {
+				// For theme-added sizes.
+				$sizes[ $size_name ]['height'] = (int) $additional_sizes[ $size_name ]['height'];
+			} else {
+				// For default sizes set in options.
+				$sizes[ $size_name ]['height'] = (int) get_option( "{$size_name}_size_h" );
+			}
+
+			if ( isset( $additional_sizes[ $size_name ]['crop'] ) ) {
+				// For theme-added sizes.
+				$sizes[ $size_name ]['crop'] = (int) $additional_sizes[ $size_name ]['crop'];
+			} else {
+				// For default sizes set in options.
+				$sizes[ $size_name ]['crop'] = (int) get_option( "{$size_name}_crop" );
+			}
+		}
+
+		return $sizes;
 	}
 }

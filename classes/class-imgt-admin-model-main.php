@@ -534,6 +534,10 @@ class IMGT_Admin_Model_Main {
 				'is_error'  => $this->count_medias_with_invalid_wp_metas() > 0,
 				'more_info' => $this->get_clear_cache_link( 'imgt_medias_invalid_wp_metas', 'clear_medias_with_invalid_wp_metas_cache' ),
 			),
+			array(
+				'label' => __( 'Number of thumbnail sizes', 'imagify-tools' ),
+				'value' => count( IMGT_Tools::get_thumbnail_sizes() ),
+			),
 		);
 
 		if ( class_exists( 'Imagify_Folders_DB', true ) ) {
