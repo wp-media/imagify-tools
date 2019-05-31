@@ -372,10 +372,12 @@ class IMGT_Admin_Model_Main {
 		if ( function_exists( 'curl_version' ) ) {
 			$curl_array = curl_version();
 			$fields[]   = array(
-				'label'    => '<code>curl_version()</code>',
-				'value'    => $curl_array,
+				'label'     => '<code>curl_version()</code>',
+				'value'     => $curl_array,
 				// 7.34.0 is most probably the oldest version supported (so far, 7.29.0 fails and 7.35.0 successes).
-				'is_error' => ! empty( $curl_array['version'] ) ? version_compare( $curl_array['version'], '7.34' ) < 0 : true,
+				'is_error'  => ! empty( $curl_array['version'] ) ? version_compare( $curl_array['version'], '7.34' ) < 0 : true,
+				/* translators: 1 and 2 are cURL versions. */
+				'more_info' => sprintf( __( 'Version should be %1$s at least, but we have seen %2$s working.', 'imagify-tools' ), '<code>7.34</code>', '<code>7.29.0</code>' ),
 			);
 
 			$curl_features = array(
