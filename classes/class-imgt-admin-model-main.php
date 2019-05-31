@@ -570,7 +570,7 @@ class IMGT_Admin_Model_Main {
 			);
 		}
 
-		$this->add_data_section( __( 'Attachments', 'imagify-tools' ), $attachments );
+		$this->add_data_section( __( 'Media', 'imagify-tools' ), $attachments );
 	}
 
 	/**
