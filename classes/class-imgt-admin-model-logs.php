@@ -27,7 +27,7 @@ class IMGT_Admin_Model_Logs {
 		global $wp_list_table;
 
 		// Instantiate the list.
-		$wp_list_table = new IMGT_Logs_List_Table( array( 'screen' => convert_to_screen( IMGT_Logs::POST_TYPE ) ) ); // WPCS: override ok.
+		$wp_list_table = new IMGT_Logs_List_Table( array( 'screen' => convert_to_screen( IMGT_Logs::POST_TYPE ) ) );
 
 		// Query the Logs.
 		$wp_list_table->prepare_items();

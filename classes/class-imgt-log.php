@@ -107,13 +107,16 @@ class IMGT_Log {
 			$process_data = false;
 		}
 
-		$args = array_merge( array(
-			'time'   => '',
-			'order'  => 0,
-			'type'   => '',
-			'target' => '',
-			'data'   => array(),
-		), $args );
+		$args = array_merge(
+			array(
+				'time'   => '',
+				'order'  => 0,
+				'type'   => '',
+				'target' => '',
+				'data'   => array(),
+			),
+			$args
+		);
 
 		// Extract the subtype from the type.
 		$args['type'] = self::split_subtype( $args['type'] );
@@ -410,7 +413,7 @@ class IMGT_Log {
 			if ( preg_match( '/^<pre>(?:<code>)?(.*)(?:<\/code>)?<\/pre>$/', $value, $matches ) ) {
 				$matches[1]   = explode( "\n", $matches[1] );
 				$matches[1]   = reset( $matches[1] );
-				$data[ $key ] = '<code>' . strip_tags( $matches[1] ) . '</code>';
+				$data[ $key ] = '<code>' . wp_strip_all_tags( $matches[1] ) . '</code>';
 			}
 		}
 

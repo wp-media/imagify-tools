@@ -8,36 +8,40 @@
 	<file>.</file>
 	<exclude-pattern>tests.php</exclude-pattern>
 
-	<rule ref="WordPress">
-		<!-- https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/ -->
-		<exclude name="Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma"/>
-		<exclude name="Generic.PHP.NoSilencedErrors.Discouraged"/>
-		<exclude name="Squiz.Commenting.FileComment.Missing"/>
-		<exclude name="Squiz.Commenting.FileComment.MissingPackageTag"/>
-		<exclude name="Squiz.ControlStructures.ControlSignature.SpaceAfterCloseBrace"/>
-		<exclude name="Squiz.PHP.CommentedOutCode.Found"/>
-		<exclude name="WordPress.Arrays.ArrayDeclarationSpacing.AssociativeKeyFound"/>
-		<exclude name="WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting"/>
-		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_error_reporting"/>
-		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_ini_set"/>
-		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize"/>
-		<exclude name="WordPress.VIP.DirectDatabaseQuery.DirectQuery"/>
-		<exclude name="WordPress.VIP.DirectDatabaseQuery.NoCaching"/>
-		<exclude name="WordPress.VIP.DirectDatabaseQuery.SchemaChange"/>
-		<exclude name="WordPress.VIP.PostsPerPage.posts_per_page_posts_per_page"/>
-		<exclude name="WordPress.VIP.RestrictedFunctions.get_posts_get_posts"/>
-		<exclude name="WordPress.VIP.RestrictedFunctions.switch_to_blog_switch_to_blog"/>
-		<exclude name="WordPress.VIP.RestrictedVariables.cache_constraints___COOKIE"/>
-		<exclude name="WordPress.VIP.RestrictedVariables.user_meta__wpdb__users"/>
-		<exclude name="WordPress.VIP.SuperGlobalInputUsage.AccessDetected"/>
-		<exclude name="WordPress.WP.AlternativeFunctions.curl_curl_version"/>
-		<exclude name="WordPress.WP.CapitalPDangit.Misspelled"/>
-		<exclude name="WordPress.XSS.EscapeOutput"/>
+	<!-- Check for cross-version support for PHP 5.2 and higher + WP 3.7 and higher. -->
+	<config name="testVersion" value="5.2-"/>
+	<config name="minimum_supported_wp_version" value="3.7"/>
+
+	<!-- Run against the PHPCompatibility ruleset dedicated to WP. -->
+	<rule ref="PHPCompatibilityWP">
+		<include-pattern>*\.php$</include-pattern>
+		<exclude name="PHPCompatibility.FunctionNameRestrictions.RemovedMagicAutoload.Found"/><!-- __autoload() function is defined in a separate file. -->
 	</rule>
 
-	<rule ref="WordPress.CSRF.NonceVerification">
+	<!-- Run against the WordPress ruleset. -->
+	<rule ref="WordPress">
+		<exclude name="Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma"/><!-- Completely broken. -->
+		<exclude name="Generic.PHP.NoSilencedErrors.Discouraged"/><!-- I've been told that silence is golden. -->
+		<exclude name="Squiz.Commenting.FileComment.Missing"/><!-- Nope nope nope. -->
+		<exclude name="Squiz.ControlStructures.ControlSignature.SpaceAfterCloseBrace"/><!-- No. Simply, no. -->
+		<exclude name="Squiz.PHP.CommentedOutCode.Found"/><!-- LOL, this thing is totally broken. -->
+		<exclude name="WordPress.DB.DirectDatabaseQuery.DirectQuery"/><!-- LOL. Yeah, sure. -->
+		<exclude name="WordPress.DB.DirectDatabaseQuery.NoCaching"/><!-- Using static vars IS caching. -->
+		<exclude name="WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting"/><!-- We 👏 Need 👏 It 👏 ! -->
+		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_error_reporting"/><!-- Same. -->
+		<exclude name="WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_ini_set"/><!-- Same. -->
+		<exclude name="WordPress.PHP.NoSilencedErrors.Discouraged"/><!-- Silence is golden. -->
+		<exclude name="WordPress.WP.AlternativeFunctions.curl_curl_version"/><!-- Same. -->
+		<exclude name="WordPress.WP.CapitalPDangit.Misspelled"/><!-- False positives. -->
+		<exclude name="WordPress.WP.GlobalVariablesOverride.Prohibited"/><!-- Stop using global vars and I'll stop overriding them. Deal? -->
+		<exclude name="WordPress.WP.PostsPerPage.posts_per_page_posts_per_page"/><!-- Should I use 100000 DB queries in a loop then? -->
+		<exclude name="WordPress.Security.EscapeOutput.OutputNotEscaped"/>
+		<exclude name="WordPress.Security.EscapeOutput.UnsafePrintingFunction"/>
+	</rule>
+
+	<!--<rule ref="WordPress.CSRF.NonceVerification">
 		<properties>
 			<property name="customNonceVerificationFunctions" value="check_nonce_and_user" type="array"/>
 		</properties>
-	</rule>
+	</rule>-->
 </ruleset>
