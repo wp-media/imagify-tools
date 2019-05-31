@@ -31,7 +31,7 @@ class IMGT_Attachments_Metas {
 	 *
 	 * @var object
 	 */
-	protected static $_instance;
+	protected static $instance;
 
 	/**
 	 * The constructor.
@@ -50,11 +50,11 @@ class IMGT_Attachments_Metas {
 	 * @return object Main instance.
 	 */
 	public static function get_instance() {
-		if ( ! isset( self::$_instance ) ) {
-			self::$_instance = new self();
+		if ( ! isset( self::$instance ) ) {
+			self::$instance = new self();
 		}
 
-		return self::$_instance;
+		return self::$instance;
 	}
 
 	/**
@@ -64,7 +64,7 @@ class IMGT_Attachments_Metas {
 	 * @author Grégory Viguier
 	 */
 	public static function delete_instance() {
-		unset( self::$_instance );
+		unset( self::$instance );
 	}
 
 	/**
@@ -168,11 +168,14 @@ class IMGT_Attachments_Metas {
 
 		// Add a meta box for each group.
 		foreach ( $meta_groups as $box_id => $box_args ) {
-			$box_args = array_merge( array(
-				'title'      => _x( 'Metas', 'attachment meta data', 'imagify-tools' ),
-				'skip_empty' => true,
-				'required'   => array(),
-			), $box_args );
+			$box_args = array_merge(
+				array(
+					'title'      => _x( 'Metas', 'attachment meta data', 'imagify-tools' ),
+					'skip_empty' => true,
+					'required'   => array(),
+				),
+				$box_args
+			);
 
 			if ( $box_args['required'] ) {
 				$tmp_metas = array_intersect_key( $metas, $box_args['required'] );

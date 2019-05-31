@@ -27,7 +27,7 @@ class IMGT_Nextgen_Gallery {
 	 * @since  1.0.3
 	 * @author Grégory Viguier
 	 */
-	protected static $_instance;
+	protected static $instance;
 
 	/**
 	 * The constructor.
@@ -48,11 +48,11 @@ class IMGT_Nextgen_Gallery {
 	 * @return object Main instance.
 	 */
 	public static function get_instance() {
-		if ( ! isset( self::$_instance ) ) {
-			self::$_instance = new self();
+		if ( ! isset( self::$instance ) ) {
+			self::$instance = new self();
 		}
 
-		return self::$_instance;
+		return self::$instance;
 	}
 
 	/**
@@ -63,7 +63,7 @@ class IMGT_Nextgen_Gallery {
 	 * @author Grégory Viguier
 	 */
 	public static function delete_instance() {
-		unset( self::$_instance );
+		unset( self::$instance );
 	}
 
 	/**

@@ -29,7 +29,7 @@ class IMGT_Admin_Post {
 	 *
 	 * @var object
 	 */
-	protected static $_instance;
+	protected static $instance;
 
 	/**
 	 * The constructor.
@@ -48,11 +48,11 @@ class IMGT_Admin_Post {
 	 * @return object Main instance.
 	 */
 	public static function get_instance() {
-		if ( ! isset( self::$_instance ) ) {
-			self::$_instance = new self();
+		if ( ! isset( self::$instance ) ) {
+			self::$instance = new self();
 		}
 
-		return self::$_instance;
+		return self::$instance;
 	}
 
 	/**
@@ -62,7 +62,7 @@ class IMGT_Admin_Post {
 	 * @author Grégory Viguier
 	 */
 	public static function delete_instance() {
-		unset( self::$_instance );
+		unset( self::$instance );
 	}
 
 	/**
@@ -163,7 +163,7 @@ class IMGT_Admin_Post {
 
 				echo $log_header;
 				echo '[' . $log->get_time() . "]\n";
-				echo html_entity_decode( strip_tags( str_replace( '<br/>', "\n", $log->get_message() ) ) );
+				echo html_entity_decode( wp_strip_all_tags( str_replace( '<br/>', "\n", $log->get_message() ) ) );
 				echo "\n\n";
 			}
 		}
@@ -195,13 +195,18 @@ class IMGT_Admin_Post {
 	public function bulk_delete_logs_cb() {
 		$this->check_nonce_and_user( 'imgt-bulk-logs' ); // Common nonce value to all bulk actions.
 
-		$logs = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT, array(
-			'flags'   => FILTER_REQUIRE_ARRAY,
-			'options' => array(
-				'default'   => 0,
-				'min_range' => 0,
-			),
-		) );
+		$logs = filter_input(
+			INPUT_GET,
+			'post',
+			FILTER_VALIDATE_INT,
+			array(
+				'flags'   => FILTER_REQUIRE_ARRAY,
+				'options' => array(
+					'default'   => 0,
+					'min_range' => 0,
+				),
+			)
+		);
 
 		if ( ! $logs ) {
 			$deleted = 0;
@@ -223,12 +228,17 @@ class IMGT_Admin_Post {
 	public function delete_log_cb() {
 		$this->check_nonce_and_user( self::get_action( 'delete_log' ) );
 
-		$log = filter_input( INPUT_GET, 'log', FILTER_VALIDATE_INT, array(
-			'options' => array(
-				'default'   => 0,
-				'min_range' => 0,
-			),
-		) );
+		$log = filter_input(
+			INPUT_GET,
+			'log',
+			FILTER_VALIDATE_INT,
+			array(
+				'options' => array(
+					'default'   => 0,
+					'min_range' => 0,
+				),
+			)
+		);
 
 		if ( ! $log ) {
 			wp_nonce_ays( '' );
@@ -345,7 +355,7 @@ class IMGT_Admin_Post {
 
 		$this->check_nonce_and_user( self::get_action( 'fix_ngg_table_engine' ) );
 
-		$wpdb->query( "ALTER TABLE {$wpdb->prefix}ngg_imagify_data ENGINE=InnoDB;" );
+		$wpdb->query( "ALTER TABLE {$wpdb->prefix}ngg_imagify_data ENGINE=InnoDB;" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
 
 		$this->redirect( 'ngg_table_engine_fixed', __( 'NGG table engine fixed.', 'imagify-tools' ) );
 	}
