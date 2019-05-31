@@ -445,20 +445,7 @@ class IMGT_Admin_Model_Main {
 	 * @author Grégory Viguier
 	 */
 	public function add_requests_section() {
-		// Link to switch between async and blocking requests.
-		$blocking_link = imagify_tools_get_site_transient( 'imgt_blocking_requests' ) ? __( 'Make optimization back to async', 'imagify-tools' ) : __( 'Make optimization non async', 'imagify-tools' );
-		$blocking_link = sprintf(
-			'<a class="imgt-button imgt-button-ternary imgt-button-mini" href="%s">%s</a>',
-			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ), IMGT_Admin_Post::get_action( 'switch_blocking_requests' ) ) ),
-			$blocking_link
-		);
-
 		$requests = array(
-			array(
-				'label'     => '',
-				'value'     => '',
-				'more_info' => $blocking_link,
-			),
 			array(
 				/* translators: %s is a WP filter name. */
 				'label' => sprintf( __( 'Value of the filter %s', 'imagify-tools' ), '<code>https_ssl_verify</code>' ),

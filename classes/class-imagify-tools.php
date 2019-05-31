@@ -131,7 +131,6 @@ class Imagify_Tools {
 
 		// Init classes.
 		IMGT_Logs::get_instance()->init();
-		IMGT_Hooks::get_instance()->init();
 
 		if ( is_admin() ) {
 			IMGT_Admin_Post::get_instance()->init();
@@ -319,7 +318,6 @@ class Imagify_Tools {
 			'IMGT_Admin_View_Main'   => 1,
 			'IMGT_Admin_View_Logs'   => 1,
 			'IMGT_Attachments_Metas' => 1,
-			'IMGT_Hooks'             => 1,
 			'IMGT_Logs'              => 1,
 			'IMGT_Logs_List_Table'   => 1,
 			'IMGT_Log'               => 1,

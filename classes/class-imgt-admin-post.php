@@ -94,9 +94,6 @@ class IMGT_Admin_Post {
 		add_action( 'wp_ajax_' . self::get_action( 'test' ),                                        array( $this, 'ajax_test_cb' ) );
 		add_action( 'admin_post_' . self::get_action( 'test' ),                                     array( $this, 'ajax_test_cb' ) );
 
-		// Blocking requests.
-		add_action( 'admin_post_' . self::get_action( 'switch_blocking_requests' ),                 array( $this, 'switch_blocking_requests_cb' ) );
-
 		// Clear request cache.
 		add_action( 'admin_post_' . self::get_action( 'clear_request_cache' ),                      array( $this, 'clear_request_cache_cb' ) );
 
@@ -260,26 +257,6 @@ class IMGT_Admin_Post {
 	public function ajax_test_cb() {
 		echo 'OK';
 		die();
-	}
-
-	/**
-	 * Make our async optimization blocking (or non blocking), so it can be easily debugged with Logs.
-	 *
-	 * @since  1.0
-	 * @author Grégory Viguier
-	 */
-	public function switch_blocking_requests_cb() {
-		$this->check_nonce_and_user( self::get_action( 'switch_blocking_requests' ) );
-
-		if ( imagify_tools_get_site_transient( 'imgt_blocking_requests' ) ) {
-			// Go back to blocking requests.
-			imagify_tools_delete_site_transient( 'imgt_blocking_requests' );
-			$this->redirect( 'blocking_requests', __( 'Async optimization is back to normal.', 'imagify-tools' ) );
-		}
-
-		imagify_tools_set_site_transient( 'imgt_blocking_requests', 1, 4 * HOUR_IN_SECONDS );
-
-		$this->redirect( 'non_blocking_requests', __( 'Optimization is not async anymore.', 'imagify-tools' ) );
 	}
 
 	/**
