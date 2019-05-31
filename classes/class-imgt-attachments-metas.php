@@ -233,8 +233,10 @@ class IMGT_Attachments_Metas {
 			return;
 		}
 
-		$path   = wp_normalize_path( $path );
-		$exists = file_exists( $path );
+		$path    = wp_normalize_path( $path );
+		$exists  = file_exists( $path );
+		$is_image = (object) wp_check_filetype( $path, IMGT_Tools::get_mime_types( 'image' ) );
+		$is_image = ! empty( $is_image->type );
 
 		if ( $exists ) {
 			/**
@@ -285,9 +287,6 @@ class IMGT_Attachments_Metas {
 			/**
 			 * Dimensions.
 			 */
-			$is_image = (object) wp_check_filetype( $path, IMGT_Tools::get_mime_types( 'image' ) );
-			$is_image = ! empty( $is_image->type );
-
 			if ( $is_image ) {
 				$imgsize = @getimagesize( $path );
 				$width   = $imgsize ? $imgsize[0] : 0;
@@ -301,9 +300,14 @@ class IMGT_Attachments_Metas {
 		$sizes       = ! empty( $data['args']['metas']['_wp_attachment_metadata'][0]['sizes'] ) && is_array( $data['args']['metas']['_wp_attachment_metadata'][0]['sizes'] ) ? $data['args']['metas']['_wp_attachment_metadata'][0]['sizes'] : array();
 		$thumb_error = true;
 
-		if ( $sizes ) {
-			$thumb_error      = false;
-			$original_dirname = trailingslashit( dirname( $path ) );
+		if ( $is_image && $sizes ) {
+			$thumb_error           = false;
+			$original_dirname      = trailingslashit( dirname( $path ) );
+			$tmp_sizes             = array();
+			$imagify_sizes         = ! empty( $data['args']['metas']['_imagify_data'][0]['sizes'] ) && is_array( $data['args']['metas']['_imagify_data'][0]['sizes'] ) ? $data['args']['metas']['_imagify_data'][0]['sizes'] : array();
+			$disallowed_sizes      = get_site_option( 'imagify_settings' );
+			$disallowed_sizes      = ! empty( $disallowed_sizes['disallowed-sizes'] ) && is_array( $disallowed_sizes['disallowed-sizes'] ) ? $disallowed_sizes['disallowed-sizes'] : array();
+			$is_active_for_network = imagify_is_active_for_network();
 
 			foreach ( $sizes as $size_name => $size_data ) {
 				if ( file_exists( $original_dirname . $size_data['file'] ) ) {
@@ -312,9 +316,37 @@ class IMGT_Attachments_Metas {
 				} else {
 					$thumb_error = true;
 					/* translators: 1 and 2 are whatever you like them to be. Even more. */
-					$sizes[ $size_name ] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Does not exist', 'File', 'imagify-tools' ), $size_name );
+					$sizes[ $size_name ] = '☠️ ' . sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Does not exist', 'File', 'imagify-tools' ), $size_name );
+				}
+
+				// Webp.
+				$webp_size_name = $size_name . '@imagify-webp';
+
+				if ( empty( $imagify_sizes[ $webp_size_name ] ) ) {
+					// Not created.
+					continue;
+				}
+
+				if ( ! $is_active_for_network && isset( $disallowed_sizes[ $size_name ] ) ) {
+					// Size is disabled.
+					/* translators: 1 and 2 are whatever you like them to be. Even more. */
+					$tmp_sizes[ $webp_size_name ] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Disabled', 'Thumbnail size', 'imagify-tools' ), $size_name );
+				} elseif ( file_exists( $original_dirname . $size_data['file'] . '.webp' ) ) {
+					/* translators: 1 and 2 are whatever you like them to be. Even more. */
+					$tmp_sizes[ $webp_size_name ] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Exists', 'File', 'imagify-tools' ), $size_name );
+				} else {
+					$thumb_error = true;
+					/* translators: 1 and 2 are whatever you like them to be. Even more. */
+					$tmp_sizes[ $webp_size_name ] = '☠️ ' . sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Does not exist', 'File', 'imagify-tools' ), $size_name );
 				}
 			}
+
+			if ( $tmp_sizes ) {
+				/* translators: 1 and 2 are whatever you like them to be. Even more. */
+				$sizes = array_merge( $sizes, array( '→ ' . sprintf( __( '%1$s: %2$s', 'imagify-tools' ), 'Webp', '' ) ), $tmp_sizes );
+			}
+		} else {
+			$sizes = array();
 		}
 
 		/**
@@ -373,9 +405,11 @@ class IMGT_Attachments_Metas {
 			}
 		}
 
-		echo '<tr' . ( ! $thumb_error ? '' : ' class="row-error"' ) . '>';
-			echo '<th>' . esc_html__( 'Thumbnails', 'imagify-tools' ) . '</th><td>' . implode( '<br/>', array_map( 'esc_html', $sizes ) ) . '</td>';
-		echo '</tr>';
+		if ( $is_image ) {
+			echo '<tr' . ( ! $thumb_error ? '' : ' class="row-error"' ) . '>';
+				echo '<th>' . esc_html__( 'Thumbnails', 'imagify-tools' ) . '</th><td>' . implode( '<br/>', array_map( 'esc_html', $sizes ) ) . '</td>';
+			echo '</tr>';
+		}
 
 		echo '<tr' . ( $has_backup ? '' : ' class="row-error"' ) . '>';
 			echo '<th>' . esc_html__( 'Has backup', 'imagify-tools' ) . '</th><td>' . esc_html( $has_backup ? __( 'Yes', 'imagify-tools' ) : __( 'No', 'imagify-tools' ) ) . '</td>';
