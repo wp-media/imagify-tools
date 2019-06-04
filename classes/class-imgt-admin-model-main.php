@@ -96,10 +96,11 @@ class IMGT_Admin_Model_Main {
 		/**
 		 * Chmod and backup dir.
 		 */
-		$chmod_dir        = fileperms( ABSPATH ) & 0777 | 0755;
-		$chmod_file       = fileperms( ABSPATH . 'index.php' ) & 0777 | 0644;
-		$backup_dir       = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
-		$imagify_settings = get_site_option( 'imagify_settings' );
+		$chmod_dir         = fileperms( ABSPATH ) & 0777 | 0755;
+		$chmod_file        = fileperms( ABSPATH . 'index.php' ) & 0777 | 0644;
+		$backup_dir        = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
+		$backup_dir_exists = file_exists( $backup_dir ) && wp_is_writable( $backup_dir );
+		$imagify_settings  = get_site_option( 'imagify_settings' );
 
 		$this->add_data_section(
 			__( 'WordPress Filesystem', 'imagify-tools' ),
@@ -126,7 +127,7 @@ class IMGT_Admin_Model_Main {
 				array(
 					'label'     => 'wp_upload_dir() <em>(url)</em>',
 					'value'     => $wp_upload_dir['url'],
-					'is_error'  => $error_string === $wp_upload_dir['url'] || ! filter_var( $wp_upload_dir['url'], FILTER_VALIDATE_URL ),
+					'is_error'  => $error_string === $wp_upload_dir['url'] || ! filter_var( $wp_upload_dir['url'], FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED | FILTER_FLAG_HOST_REQUIRED ),
 					'more_info' => __( 'Should be a valid URL.', 'imagify-tools' ),
 				),
 				array(
@@ -144,7 +145,7 @@ class IMGT_Admin_Model_Main {
 				array(
 					'label'     => 'wp_upload_dir() <em>(baseurl)</em>',
 					'value'     => $wp_upload_dir['baseurl'],
-					'is_error'  => $error_string === $wp_upload_dir['baseurl'] || ! filter_var( $wp_upload_dir['baseurl'], FILTER_VALIDATE_URL ),
+					'is_error'  => $error_string === $wp_upload_dir['baseurl'] || ! filter_var( $wp_upload_dir['baseurl'], FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED | FILTER_FLAG_HOST_REQUIRED ),
 					'more_info' => __( 'Should be a valid URL.', 'imagify-tools' ),
 				),
 				array(
@@ -159,6 +160,13 @@ class IMGT_Admin_Model_Main {
 					'value'     => file_exists( $backup_dir ) && wp_is_writable( $backup_dir ),
 					'compare'   => ! empty( $imagify_settings['backup'] ),
 					'more_info' => ! empty( $imagify_settings['backup'] ) ? __( 'Backup is enabled.', 'imagify-tools' ) : __( 'No need, backup is disabled.', 'imagify-tools' ),
+				),
+				array(
+					'label'     => 'FS_CHMOD_DIR',
+					'value'     => IMGT_Tools::to_octal( FS_CHMOD_DIR ) . ' (' . FS_CHMOD_DIR . ')',
+					'compare'   => IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')',
+					/* translators: %s is a value. */
+					'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')</code>' ),
 				),
 				array(
 					'label'     => 'FS_CHMOD_DIR',
