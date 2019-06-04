@@ -74,14 +74,17 @@ class IMGT_Admin_Model_Main {
 		 */
 		$error_string  = '***' . __( 'Error', 'imagify-tools' ) . '***';
 		$wp_upload_dir = (array) wp_upload_dir();
-		$wp_upload_dir = array_merge( array(
-			'path'    => $error_string, /* /absolute/path/to/uploads/sub/dir */
-			'url'     => $error_string, /* http://example.com/wp-content/uploads/sub/dir */
-			'subdir'  => $error_string, /* /sub/dir */
-			'basedir' => $error_string, /* /absolute/path/to/uploads */
-			'baseurl' => $error_string, /* http://example.com/wp-content/uploads */
-			'error'   => $error_string, /* false */
-		), $wp_upload_dir );
+		$wp_upload_dir = array_merge(
+			array(
+				'path'    => $error_string, /* /absolute/path/to/uploads/sub/dir */
+				'url'     => $error_string, /* http://example.com/wp-content/uploads/sub/dir */
+				'subdir'  => $error_string, /* /sub/dir */
+				'basedir' => $error_string, /* /absolute/path/to/uploads */
+				'baseurl' => $error_string, /* http://example.com/wp-content/uploads */
+				'error'   => $error_string, /* false */
+			),
+			$wp_upload_dir
+		);
 
 		if ( '' === $wp_upload_dir['error'] ) {
 			$wp_upload_dir['error'] = '***' . __( 'empty string', 'imagify-tools' ) . '***';
@@ -99,78 +102,88 @@ class IMGT_Admin_Model_Main {
 		$backup_dir_exists = file_exists( $backup_dir ) && wp_is_writable( $backup_dir );
 		$imagify_settings  = get_site_option( 'imagify_settings' );
 
-		$this->add_data_section( __( 'WordPress Filesystem', 'imagify-tools' ), array(
+		$this->add_data_section(
+			__( 'WordPress Filesystem', 'imagify-tools' ),
 			array(
-				'label'     => 'ABSPATH',
-				'value'     => ABSPATH,
-				'is_error'  => ! path_is_absolute( ABSPATH ),
-				'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
-			),
-			array(
-				'label'     => 'IMAGIFY_PATH',
-				'value'     => defined( 'IMAGIFY_PATH' ) ? IMAGIFY_PATH : __( 'Not defined', 'imagify-tools' ),
-				'is_error'  => defined( 'IMAGIFY_PATH' ) && ! path_is_absolute( IMAGIFY_PATH ),
-				'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
-			),
-			array(
-				'label'     => 'wp_upload_dir() <em>(path)</em>',
-				'value'     => $wp_upload_dir['path'],
-				'is_error'  => $error_string === $wp_upload_dir['path'] || ! path_is_absolute( $wp_upload_dir['path'] ),
-				/* translators: %s is a file path. */
-				'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
-			),
-			array(
-				'label'     => 'wp_upload_dir() <em>(url)</em>',
-				'value'     => $wp_upload_dir['url'],
-				'is_error'  => $error_string === $wp_upload_dir['url'] || ! filter_var( $wp_upload_dir['url'], FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED | FILTER_FLAG_HOST_REQUIRED ),
-				'more_info' => __( 'Should be a valid URL.', 'imagify-tools' ),
-			),
-			array(
-				'label'     => 'wp_upload_dir() <em>(subdir)</em>',
-				'value'     => $wp_upload_dir['subdir'],
-				'is_error'  => $error_string === $wp_upload_dir['path'],
-				'more_info' => 'Meh',
-			),
-			array(
-				'label'     => 'wp_upload_dir() <em>(basedir)</em>',
-				'value'     => $wp_upload_dir['basedir'],
-				'is_error'  => $error_string === $wp_upload_dir['basedir'] || ! path_is_absolute( $wp_upload_dir['basedir'] ),
-				'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
-			),
-			array(
-				'label'     => 'wp_upload_dir() <em>(baseurl)</em>',
-				'value'     => $wp_upload_dir['baseurl'],
-				'is_error'  => $error_string === $wp_upload_dir['baseurl'] || ! filter_var( $wp_upload_dir['baseurl'], FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED | FILTER_FLAG_HOST_REQUIRED ),
-				'more_info' => __( 'Should be a valid URL.', 'imagify-tools' ),
-			),
-			array(
-				'label'     => 'wp_upload_dir() <em>(error)</em>',
-				'value'     => $wp_upload_dir['error'],
-				'compare'   => 'false (boolean)',
-				/* translators: %s is a value. */
-				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>false (boolean)</code>' ),
-			),
-			array(
-				'label'     => __( 'Backups folder exists and is writable', 'imagify-tools' ),
-				'value'     => $backup_dir_exists,
-				'is_error'  => ! empty( $imagify_settings['backup'] ) ? ! $backup_dir_exists : false,
-				'more_info' => ! empty( $imagify_settings['backup'] ) ? __( 'Backup is enabled.', 'imagify-tools' ) : __( 'No need, backup is disabled.', 'imagify-tools' ),
-			),
-			array(
-				'label'     => 'FS_CHMOD_DIR',
-				'value'     => IMGT_Tools::to_octal( FS_CHMOD_DIR ) . ' (' . FS_CHMOD_DIR . ')',
-				'compare'   => IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')',
-				/* translators: %s is a value. */
-				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')</code>' ),
-			),
-			array(
-				'label'     => 'FS_CHMOD_FILE',
-				'value'     => IMGT_Tools::to_octal( FS_CHMOD_FILE ) . ' (' . FS_CHMOD_FILE . ')',
-				'compare'   => IMGT_Tools::to_octal( $chmod_file ) . ' (' . $chmod_file . ')',
-				/* translators: %s is a value. */
-				'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . IMGT_Tools::to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
-			),
-		) );
+				array(
+					'label'     => 'ABSPATH',
+					'value'     => ABSPATH,
+					'is_error'  => ! path_is_absolute( ABSPATH ),
+					'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
+				),
+				array(
+					'label'     => 'IMAGIFY_PATH',
+					'value'     => defined( 'IMAGIFY_PATH' ) ? IMAGIFY_PATH : __( 'Not defined', 'imagify-tools' ),
+					'is_error'  => defined( 'IMAGIFY_PATH' ) && ! path_is_absolute( IMAGIFY_PATH ),
+					'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
+				),
+				array(
+					'label'     => 'wp_upload_dir() <em>(path)</em>',
+					'value'     => $wp_upload_dir['path'],
+					'is_error'  => $error_string === $wp_upload_dir['path'] || ! path_is_absolute( $wp_upload_dir['path'] ),
+					/* translators: %s is a file path. */
+					'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
+				),
+				array(
+					'label'     => 'wp_upload_dir() <em>(url)</em>',
+					'value'     => $wp_upload_dir['url'],
+					'is_error'  => $error_string === $wp_upload_dir['url'] || ! filter_var( $wp_upload_dir['url'], FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED | FILTER_FLAG_HOST_REQUIRED ),
+					'more_info' => __( 'Should be a valid URL.', 'imagify-tools' ),
+				),
+				array(
+					'label'     => 'wp_upload_dir() <em>(subdir)</em>',
+					'value'     => $wp_upload_dir['subdir'],
+					'is_error'  => $error_string === $wp_upload_dir['path'],
+					'more_info' => 'Meh',
+				),
+				array(
+					'label'     => 'wp_upload_dir() <em>(basedir)</em>',
+					'value'     => $wp_upload_dir['basedir'],
+					'is_error'  => $error_string === $wp_upload_dir['basedir'] || ! path_is_absolute( $wp_upload_dir['basedir'] ),
+					'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
+				),
+				array(
+					'label'     => 'wp_upload_dir() <em>(baseurl)</em>',
+					'value'     => $wp_upload_dir['baseurl'],
+					'is_error'  => $error_string === $wp_upload_dir['baseurl'] || ! filter_var( $wp_upload_dir['baseurl'], FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED | FILTER_FLAG_HOST_REQUIRED ),
+					'more_info' => __( 'Should be a valid URL.', 'imagify-tools' ),
+				),
+				array(
+					'label'     => 'wp_upload_dir() <em>(error)</em>',
+					'value'     => $wp_upload_dir['error'],
+					'compare'   => 'false (boolean)',
+					/* translators: %s is a value. */
+					'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>false (boolean)</code>' ),
+				),
+				array(
+					'label'     => __( 'Backups folder exists and is writable', 'imagify-tools' ),
+					'value'     => file_exists( $backup_dir ) && wp_is_writable( $backup_dir ),
+					'compare'   => ! empty( $imagify_settings['backup'] ),
+					'more_info' => ! empty( $imagify_settings['backup'] ) ? __( 'Backup is enabled.', 'imagify-tools' ) : __( 'No need, backup is disabled.', 'imagify-tools' ),
+				),
+				array(
+					'label'     => 'FS_CHMOD_DIR',
+					'value'     => IMGT_Tools::to_octal( FS_CHMOD_DIR ) . ' (' . FS_CHMOD_DIR . ')',
+					'compare'   => IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')',
+					/* translators: %s is a value. */
+					'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')</code>' ),
+				),
+				array(
+					'label'     => 'FS_CHMOD_DIR',
+					'value'     => IMGT_Tools::to_octal( FS_CHMOD_DIR ) . ' (' . FS_CHMOD_DIR . ')',
+					'compare'   => IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')',
+					/* translators: %s is a value. */
+					'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . IMGT_Tools::to_octal( $chmod_dir ) . ' (' . $chmod_dir . ')</code>' ),
+				),
+				array(
+					'label'     => 'FS_CHMOD_FILE',
+					'value'     => IMGT_Tools::to_octal( FS_CHMOD_FILE ) . ' (' . FS_CHMOD_FILE . ')',
+					'compare'   => IMGT_Tools::to_octal( $chmod_file ) . ' (' . $chmod_file . ')',
+					/* translators: %s is a value. */
+					'more_info' => sprintf( __( 'Should be %s.', 'imagify-tools' ), '<code>' . IMGT_Tools::to_octal( $chmod_file ) . ' (' . $chmod_file . ')</code>' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -204,6 +217,7 @@ class IMGT_Admin_Model_Main {
 					'is_error'  => ! path_is_absolute( $filesystem->get_root() ),
 					'more_info' => __( 'Should be an absolute path.', 'imagify-tools' ),
 				);
+
 				$internal_path_test = $filesystem->get_root();
 			}
 
@@ -215,6 +229,7 @@ class IMGT_Admin_Model_Main {
 					/* translators: %s is a file path. */
 					'more_info' => sprintf( __( 'Should be an absolute path and start with %s.', 'imagify-tools' ), '<code>' . $internal_path_test . '</code>' ),
 				);
+
 				$internal_path_test = $filesystem->get_site_root();
 			}
 
@@ -234,15 +249,18 @@ class IMGT_Admin_Model_Main {
 			);
 		}
 
-		$fields = array_merge( $fields, array(
+		$fields = array_merge(
+			$fields,
 			array(
-				'label'     => 'imagify_get_filesystem()',
-				'value'     => $filesystem,
-				'is_error'  => ! is_object( $filesystem ) || ! $filesystem || ! isset( $filesystem->errors ) || array_filter( (array) $filesystem->errors ),
-				/* translators: 1 and 2 are data names. */
-				'more_info' => sprintf( __( '%1$s and %2$s should be empty.', 'imagify-tools' ), '<code>WP_Error->errors</code>', '<code>WP_Error->error_data</code>' ),
-			),
-		) );
+				array(
+					'label'     => 'imagify_get_filesystem()',
+					'value'     => $filesystem,
+					'is_error'  => ! is_object( $filesystem ) || ! $filesystem || ! isset( $filesystem->errors ) || array_filter( (array) $filesystem->errors ),
+					/* translators: 1 and 2 are data names. */
+					'more_info' => sprintf( __( '%1$s and %2$s should be empty.', 'imagify-tools' ), '<code>WP_Error->errors</code>', '<code>WP_Error->error_data</code>' ),
+				),
+			)
+		);
 
 		$this->add_data_section( __( 'Imagify Filesystem', 'imagify-tools' ), $fields );
 	}
@@ -588,11 +606,13 @@ class IMGT_Admin_Model_Main {
 		 */
 		$ngg_table_engine_fix_link = '';
 		$ngg_table_engine_compare  = 'InnoDB';
-		$ngg_table_engine          = $wpdb->get_var( $wpdb->prepare(
-			'SELECT ENGINE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s',
-			DB_NAME,
-			$wpdb->prefix . 'ngg_imagify_data'
-		) );
+		$ngg_table_engine          = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT ENGINE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s',
+				DB_NAME,
+				$wpdb->prefix . 'ngg_imagify_data'
+			)
+		);
 
 		if ( is_null( $ngg_table_engine ) ) {
 			$ngg_table_engine_compare = __( 'The table doesn\'t exist.', 'imagify-tools' );
@@ -616,70 +636,78 @@ class IMGT_Admin_Model_Main {
 			}
 		}
 
-		$this->add_data_section( __( 'Various Tests and Values', 'imagify-tools' ), array(
+		$this->add_data_section(
+			__( 'Various Tests and Values', 'imagify-tools' ),
 			array(
-				'label' => __( 'Hosting Company', 'imagify-tools' ),
-				'value' => $this->get_hosting_company(),
-			),
-			array(
-				'label' => __( 'PHP version', 'imagify-tools' ),
-				'value' => PHP_VERSION,
-			),
-			array(
-				'label'    => __( 'WP version', 'imagify-tools' ),
-				'value'    => $wp_version,
-				'is_error' => version_compare( $wp_version, '4.0' ) < 0,
-			),
-			array(
-				/* translators: 1 and 2 are constant names. */
-				'label' => sprintf( __( 'Memory Limit (%1$s value / %2$s value / real value)', 'imagify-tools' ), '<code>WP_MEMORY_LIMIT</code>', '<code>WP_MAX_MEMORY_LIMIT</code>' ),
-				'value' => WP_MEMORY_LIMIT . ' / ' . WP_MAX_MEMORY_LIMIT . ' / ' . @ini_get( 'memory_limit' ),
-			),
-			array(
-				'label'     => __( 'Uses external object cache', 'imagify-tools' ),
-				'value'     => wp_using_ext_object_cache() ? wp_using_ext_object_cache() : false,
-				'more_info' => wp_using_ext_object_cache() ? get_class( $wp_object_cache ) : '',
-			),
-			array(
-				'label'     => __( 'NGG table engine', 'imagify-tools' ),
-				'value'     => $ngg_table_engine,
-				'compare'   => $ngg_table_engine_compare,
-				/* translators: %s is a value. */
-				'more_info' => sprintf( __( 'If exists, should be %s.', 'imagify-tools' ), '<code>InnoDB</code>' ) . $ngg_table_engine_fix_link,
-			),
-			array(
-				'label' => __( 'Is multisite', 'imagify-tools' ),
-				'value' => is_multisite(),
-			),
-			array(
-				'label'     => __( 'Is SSL', 'imagify-tools' ),
-				'value'     => is_ssl(),
-				'compare'   => $this->is_ssl(),
-				/* translators: %s is a function name. */
-				'more_info' => is_ssl() !== $this->is_ssl() ? sprintf( __( 'The function %s returns a wrong result, it could be a problem related with the way SSL is implemented.', 'imagify-tools' ), '<code>is_ssl()</code>' ) : '',
-			),
-			array(
-				'label' => __( 'Your user ID', 'imagify-tools' ),
-				'value' => get_current_user_id(),
-			),
-			array(
-				'label' => __( 'Your IP address', 'imagify-tools' ),
-				'value' => imagify_tools_get_ip(),
-			),
-			array(
-				'label' => __( 'Settings', 'imagify-tools' ),
-				'value' => get_site_option( 'imagify_settings' ),
-			),
-			array(
-				'label'     => __( 'Imagify User', 'imagify-tools' ),
-				'value'     => $this->get_imagify_user(),
-				'more_info' => $this->get_clear_cache_link( 'imgt_user', 'clear_imagify_user_cache' ),
-			),
-			array(
-				'label' => '$_SERVER',
-				'value' => $this->sanitize( $server_data ),
-			),
-		) );
+				array(
+					'label' => __( 'Hosting Company', 'imagify-tools' ),
+					'value' => $this->get_hosting_company(),
+				),
+				array(
+					'label' => __( 'PHP version', 'imagify-tools' ),
+					'value' => PHP_VERSION,
+				),
+				array(
+					'label'    => __( 'WP version', 'imagify-tools' ),
+					'value'    => $wp_version,
+					'is_error' => version_compare( $wp_version, '4.0' ) < 0,
+				),
+				array(
+					'label'    => __( 'Max execution time', 'imagify-tools' ),
+					'value'    => @ini_get( 'max_execution_time' ),
+					'is_error' => @ini_get( 'max_execution_time' ) < 30,
+				),
+				array(
+					/* translators: 1 and 2 are constant names. */
+					'label' => sprintf( __( 'Memory Limit (%1$s value / %2$s value / real value)', 'imagify-tools' ), '<code>WP_MEMORY_LIMIT</code>', '<code>WP_MAX_MEMORY_LIMIT</code>' ),
+					'value' => WP_MEMORY_LIMIT . ' / ' . WP_MAX_MEMORY_LIMIT . ' / ' . @ini_get( 'memory_limit' ),
+				),
+				array(
+					'label'     => __( 'Uses external object cache', 'imagify-tools' ),
+					'value'     => wp_using_ext_object_cache() ? wp_using_ext_object_cache() : false,
+					'more_info' => wp_using_ext_object_cache() ? get_class( $wp_object_cache ) : '',
+				),
+				array(
+					'label'     => __( 'NGG table engine', 'imagify-tools' ),
+					'value'     => $ngg_table_engine,
+					'compare'   => $ngg_table_engine_compare,
+					/* translators: %s is a value. */
+					'more_info' => sprintf( __( 'If exists, should be %s.', 'imagify-tools' ), '<code>InnoDB</code>' ) . $ngg_table_engine_fix_link,
+				),
+				array(
+					'label' => __( 'Is multisite', 'imagify-tools' ),
+					'value' => is_multisite(),
+				),
+				array(
+					'label'     => __( 'Is SSL', 'imagify-tools' ),
+					'value'     => is_ssl(),
+					'compare'   => $this->is_ssl(),
+					/* translators: %s is a function name. */
+					'more_info' => is_ssl() !== $this->is_ssl() ? sprintf( __( 'The function %s returns a wrong result, it could be a problem related with the way SSL is implemented.', 'imagify-tools' ), '<code>is_ssl()</code>' ) : '',
+				),
+				array(
+					'label' => __( 'Your user ID', 'imagify-tools' ),
+					'value' => get_current_user_id(),
+				),
+				array(
+					'label' => __( 'Your IP address', 'imagify-tools' ),
+					'value' => imagify_tools_get_ip(),
+				),
+				array(
+					'label' => __( 'Settings', 'imagify-tools' ),
+					'value' => get_site_option( 'imagify_settings' ),
+				),
+				array(
+					'label'     => __( 'Imagify User', 'imagify-tools' ),
+					'value'     => $this->get_imagify_user(),
+					'more_info' => $this->get_clear_cache_link( 'imgt_user', 'clear_imagify_user_cache' ),
+				),
+				array(
+					'label' => '$_SERVER',
+					'value' => $this->sanitize( $server_data ),
+				),
+			)
+		);
 	}
 
 
@@ -808,13 +836,16 @@ class IMGT_Admin_Model_Main {
 
 		// Blocked by .htaccess, firewall, or host?
 		try {
-			$is_blocked = wp_remote_request( $url, array(
-				'method'     => $method,
-				'user-agent' => 'Imagify Tools',
-				'cookies'    => $_COOKIE, // WPCS: input var okay.
-				'sslverify'  => $sslverify,
-				'timeout'    => 10,
-			) );
+			$is_blocked = wp_remote_request(
+				$url,
+				array(
+					'method'     => $method,
+					'user-agent' => 'Imagify Tools',
+					'cookies'    => $_COOKIE, // WPCS: input var okay.
+					'sslverify'  => $sslverify,
+					'timeout'    => 10,
+				)
+			);
 		} catch ( Exception $e ) {
 			$is_blocked = new WP_Error( 'curl', $e->getMessage() );
 		}
@@ -1035,12 +1066,15 @@ class IMGT_Admin_Model_Main {
 			if ( version_compare( IMAGIFY_VERSION, '1.7.1.2' ) < 0 ) {
 				$nodata_where = Imagify_DB::get_required_wp_metadata_where_clause( array(), false, false );
 			} else {
-				$nodata_where = Imagify_DB::get_required_wp_metadata_where_clause( array(
-					'matching' => false,
-					'test'     => false,
-				) );
+				$nodata_where = Imagify_DB::get_required_wp_metadata_where_clause(
+					array(
+						'matching' => false,
+						'test'     => false,
+					)
+				);
 			}
-			$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$transient_value = $wpdb->get_var(
 				"
 				SELECT COUNT( p.ID )
 				FROM $wpdb->posts AS p
@@ -1060,7 +1094,7 @@ class IMGT_Admin_Model_Main {
 			$statuses   = esc_sql( IMGT_Tools::get_post_statuses() );
 			$statuses   = "'" . implode( "','", $statuses ) . "'";
 
-			$transient_value = $wpdb->get_var( // WPCS: unprepared SQL ok.
+			$transient_value = $wpdb->get_var(
 				"
 				SELECT COUNT( p.ID )
 				FROM $wpdb->posts AS p
@@ -1073,6 +1107,7 @@ class IMGT_Admin_Model_Main {
 					AND p.post_status IN ( $statuses )
 					AND ( imrwpmt2.meta_value IS NULL OR imrwpmt1.meta_value IS NULL OR imrwpmt1.meta_value LIKE '%://%' OR imrwpmt1.meta_value LIKE '_:\\\\\%' $extensions )"
 			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		}
 
 		imagify_tools_set_site_transient( $transient_name, $transient_value, self::CACHE_DURATION * MINUTE_IN_SECONDS );
@@ -1119,15 +1154,15 @@ class IMGT_Admin_Model_Main {
 		$files_db      = Imagify_Files_DB::get_instance();
 		$files_table   = $files_db->get_table_name();
 		$files_key_esc = esc_sql( $files_db->get_primary_key() );
-		$folder_ids    = $wpdb->get_col( "SELECT $folders_key_esc FROM $folders_table" ); // WPCS: unprepared SQL ok.
+		$folder_ids    = $wpdb->get_col( "SELECT $folders_key_esc FROM $folders_table" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( $folder_ids ) {
 			$folder_ids = $folders_db->cast_col( $folder_ids, $folders_key );
 			$folder_ids = Imagify_DB::prepare_values_list( $folder_ids );
 
-			$transient_value = (int) $wpdb->get_var( "SELECT COUNT( $files_key_esc ) FROM $files_table WHERE folder_id NOT IN ( $folder_ids )" ); // WPCS: unprepared SQL ok.
+			$transient_value = (int) $wpdb->get_var( "SELECT COUNT( $files_key_esc ) FROM $files_table WHERE folder_id NOT IN ( $folder_ids )" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		} else {
-			$transient_value = (int) $wpdb->get_var( "SELECT COUNT( $files_key_esc ) FROM $files_table" ); // WPCS: unprepared SQL ok.
+			$transient_value = (int) $wpdb->get_var( "SELECT COUNT( $files_key_esc ) FROM $files_table" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		}
 
 		imagify_tools_set_site_transient( $transient_name, $transient_value, self::CACHE_DURATION * MINUTE_IN_SECONDS );
@@ -1224,7 +1259,7 @@ class IMGT_Admin_Model_Main {
 	 * @return bool
 	 */
 	protected function is_ssl() {
-		if ( ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === strtolower( wp_unslash( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) ) ) { // WPCS: sanitization ok.
+		if ( ! empty( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === strtolower( wp_unslash( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			return true;
 		}
 		if ( preg_match( '@^https://@', admin_url( 'admin-ajax.php' ) ) ) {

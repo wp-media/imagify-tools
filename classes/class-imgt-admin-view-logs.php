@@ -52,12 +52,17 @@ class IMGT_Admin_View_Logs extends IMGT_Admin_View {
 		 * Display a Log content.
 		 * If the Log doesn't exist, remove the "log" parameter and redirect.
 		 */
-		$log = filter_input( INPUT_GET, 'log', FILTER_VALIDATE_INT, array(
-			'options' => array(
-				'default'   => 0,
-				'min_range' => 0,
-			),
-		) );
+		$log = filter_input(
+			INPUT_GET,
+			'log',
+			FILTER_VALIDATE_INT,
+			array(
+				'options' => array(
+					'default'   => 0,
+					'min_range' => 0,
+				),
+			)
+		);
 
 		if ( $log ) {
 			$this->current_log_id = IMGT_Logs::get_instance()->log_exists( $log );
@@ -80,17 +85,22 @@ class IMGT_Admin_View_Logs extends IMGT_Admin_View {
 
 			$post_type_object = get_post_type_object( $wp_list_table->screen->post_type );
 
-			$current_screen->set_screen_reader_content( array(
-				'heading_views'      => $post_type_object->labels->filter_items_list,
-				'heading_pagination' => $post_type_object->labels->items_list_navigation,
-				'heading_list'       => $post_type_object->labels->items_list,
-			) );
+			$current_screen->set_screen_reader_content(
+				array(
+					'heading_views'      => $post_type_object->labels->filter_items_list,
+					'heading_pagination' => $post_type_object->labels->items_list_navigation,
+					'heading_list'       => $post_type_object->labels->items_list,
+				)
+			);
 		}
 
-		add_screen_option( 'per_page', array(
-			'default' => 20,
-			'option'  => 'edit_' . $wp_list_table->screen->post_type . '_per_page',
-		) );
+		add_screen_option(
+			'per_page',
+			array(
+				'default' => 20,
+				'option'  => 'edit_' . $wp_list_table->screen->post_type . '_per_page',
+			)
+		);
 
 		/**
 		 * Styles.

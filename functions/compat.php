@@ -294,23 +294,32 @@ endif;
 /** IMAGIFY ===================================================================================== */
 /** --------------------------------------------------------------------------------------------- */
 
-if ( ! function_exists( 'imagify_is_attachment_mime_type_supported' ) ) :
+if ( ! function_exists( 'imagify_get_mime_types' ) ) :
 	/**
-	 * Get all mime type which could be optimized by Imagify.
+	 * Get all mime types which could be optimized by Imagify.
 	 *
-	 * @since  1.0
-	 * @since  Imagify 1.3
-	 * @author Grégory Viguier
-	 * @source Imagify
+	 * @since 1.1
+	 * @since Imagify 1.7
 	 *
-	 * @return array $mime_type  The mime type.
+	 * @param  string $type One of 'image', 'not-image'. Any other value will return all mime types.
+	 * @return array        The mime types.
 	 */
-	function get_imagify_mime_type() {
-		return array(
-			'image/jpeg',
-			'image/png',
-			'image/gif',
-		);
+	function imagify_get_mime_types( $type = null ) {
+		$mimes = array();
+
+		if ( 'not-image' !== $type ) {
+			$mimes = array(
+				'jpg|jpeg|jpe' => 'image/jpeg',
+				'png'          => 'image/png',
+				'gif'          => 'image/gif',
+			);
+		}
+
+		if ( 'image' !== $type ) {
+			$mimes['pdf'] = 'application/pdf';
+		}
+
+		return $mimes;
 	}
 endif;
 
@@ -337,7 +346,7 @@ if ( ! function_exists( 'imagify_is_attachment_mime_type_supported' ) ) :
 			return $is[ $attachment_id ];
 		}
 
-		$mime_types = get_imagify_mime_type();
+		$mime_types = imagify_get_mime_types();
 		$mime_types = array_flip( $mime_types );
 		$mime_type  = (string) get_post_mime_type( $attachment_id );
 
@@ -379,5 +388,36 @@ if ( ! function_exists( 'imagify_get_filesystem' ) ) :
 		}
 
 		return $filesystem;
+	}
+endif;
+
+if ( ! function_exists( 'imagify_is_active_for_network' ) ) :
+	/**
+	 * Check if Imagify is activated on the network.
+	 *
+	 * @since 1.1
+	 * @since Imagify 1.0
+	 *
+	 * return bool True if Imagify is activated on the network.
+	 */
+	function imagify_is_active_for_network() {
+		static $is;
+
+		if ( isset( $is ) ) {
+			return $is;
+		}
+
+		if ( ! is_multisite() ) {
+			$is = false;
+			return $is;
+		}
+
+		if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		$is = is_plugin_active_for_network( plugin_basename( 'imagify/imagify.php' ) );
+
+		return $is;
 	}
 endif;

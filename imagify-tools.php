@@ -11,7 +11,9 @@
  * Text Domain: imagify-tools
  * Domain Path: languages
  *
- * Copyright 2018 WP Media
+ * Copyright 2019 WP Media
+ *
+ * @package WP-Media\Imagify\WordPress-Tools-Plugin
  */
 
 defined( 'ABSPATH' ) || die( 'Cheatin’ uh?' );

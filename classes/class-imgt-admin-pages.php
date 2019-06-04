@@ -50,7 +50,7 @@ class IMGT_Admin_Pages {
 	 *
 	 * @var object
 	 */
-	protected static $_instance;
+	protected static $instance;
 
 	/**
 	 * The constructor.
@@ -86,11 +86,11 @@ class IMGT_Admin_Pages {
 	 * @return object Main instance.
 	 */
 	public static function get_instance() {
-		if ( ! isset( self::$_instance ) ) {
-			self::$_instance = new self();
+		if ( ! isset( self::$instance ) ) {
+			self::$instance = new self();
 		}
 
-		return self::$_instance;
+		return self::$instance;
 	}
 
 	/**
@@ -100,7 +100,7 @@ class IMGT_Admin_Pages {
 	 * @author Grégory Viguier
 	 */
 	public static function delete_instance() {
-		unset( self::$_instance );
+		unset( self::$instance );
 	}
 
 	/**
@@ -145,7 +145,7 @@ class IMGT_Admin_Pages {
 		}
 
 		if ( ! empty( $submenu[ self::MAIN_PAGE_SLUG ] ) ) {
-			$submenu[ self::MAIN_PAGE_SLUG ][0][0] = __( 'Infos', 'imagify-tools' ); // WPCS: override ok.
+			$submenu[ self::MAIN_PAGE_SLUG ][0][0] = __( 'Infos', 'imagify-tools' );
 		}
 	}
 

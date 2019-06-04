@@ -95,7 +95,7 @@ class IMGT_Logs {
 	 *
 	 * @var object
 	 */
-	protected static $_instance;
+	protected static $instance;
 
 	/**
 	 * The constructor.
@@ -114,11 +114,11 @@ class IMGT_Logs {
 	 * @return object Main instance.
 	 */
 	public static function get_instance() {
-		if ( ! isset( self::$_instance ) ) {
-			self::$_instance = new self();
+		if ( ! isset( self::$instance ) ) {
+			self::$instance = new self();
 		}
 
-		return self::$_instance;
+		return self::$instance;
 	}
 
 	/**
@@ -128,7 +128,7 @@ class IMGT_Logs {
 	 * @author Grégory Viguier
 	 */
 	public static function delete_instance() {
-		unset( self::$_instance );
+		unset( self::$instance );
 	}
 
 
@@ -216,10 +216,13 @@ class IMGT_Logs {
 	 * @param (mixed)  $value     The option new value.
 	 */
 	public function maybe_log_updated_option( $option, $old_value, $value ) {
-		$this->maybe_log_option( $option, array(
-			'new' => $value,
-			'old' => $old_value,
-		) );
+		$this->maybe_log_option(
+			$option,
+			array(
+				'new' => $value,
+				'old' => $old_value,
+			)
+		);
 	}
 
 	/**
@@ -246,10 +249,14 @@ class IMGT_Logs {
 	 * @param (mixed)  $old_value The option old value.
 	 */
 	public function maybe_log_updated_network_option( $option, $value, $old_value ) {
-		$this->maybe_log_option( $option, array(
-			'new' => $value,
-			'old' => $old_value,
-		), true );
+		$this->maybe_log_option(
+			$option,
+			array(
+				'new' => $value,
+				'old' => $old_value,
+			),
+			true
+		);
 	}
 
 	/**
@@ -420,16 +427,19 @@ class IMGT_Logs {
 			'items_list'            => __( 'Logs list', 'imagify-tools' ),
 		);
 
-		register_post_type( self::POST_TYPE, array(
-			'labels'          => $post_type_labels,
-			'capability_type' => self::POST_TYPE,
-			'supports'        => false,
-			'rewrite'         => false,
-			'map_meta_cap'    => true,
-			'capabilities'    => array(
-				'read' => 'read_' . self::POST_TYPE . 's',
-			),
-		) );
+		register_post_type(
+			self::POST_TYPE,
+			array(
+				'labels'          => $post_type_labels,
+				'capability_type' => self::POST_TYPE,
+				'supports'        => false,
+				'rewrite'         => false,
+				'map_meta_cap'    => true,
+				'capabilities'    => array(
+					'read' => 'read_' . self::POST_TYPE . 's',
+				),
+			)
+		);
 
 		$this->init_done = true;
 	}
@@ -656,12 +666,14 @@ class IMGT_Logs {
 	 * @author Grégory Viguier
 	 */
 	protected function limit_logs_number() {
-		$logs = $this->get_logs( array(
-			'fields'         => 'ids',
-			'offset'         => 500,
-			'posts_per_page' => 100000, // If -1, 'offset' won't work. Any large number does the trick.
-			'order'          => 'DESC',
-		) );
+		$logs = $this->get_logs(
+			array(
+				'fields'         => 'ids',
+				'offset'         => 500,
+				'posts_per_page' => 100000, // If -1, 'offset' won't work. Any large number does the trick.
+				'order'          => 'DESC',
+			)
+		);
 
 		if ( $logs ) {
 			foreach ( $logs as $post_id ) {
@@ -679,14 +691,16 @@ class IMGT_Logs {
 	 * @return (int) A user ID.
 	 */
 	protected static function get_default_administrator() {
-		$user_ids = get_users( array(
-			'blog_id'     => imagify_tools_get_main_blog_id(),
-			'role'        => 'administrator',
-			'number'      => 1,
-			'orderby'     => 'ID',
-			'fields'      => 'ID',
-			'count_total' => false,
-		) );
+		$user_ids = get_users(
+			array(
+				'blog_id'     => imagify_tools_get_main_blog_id(),
+				'role'        => 'administrator',
+				'number'      => 1,
+				'orderby'     => 'ID',
+				'fields'      => 'ID',
+				'count_total' => false,
+			)
+		);
 
 		return (int) reset( $user_ids );
 	}
@@ -709,20 +723,22 @@ class IMGT_Logs {
 		}
 
 		$super_admins = implode( "','", esc_sql( $super_admins ) );
-		$user_ids     = $wpdb->get_col( "SELECT ID FROM $wpdb->users WHERE user_login IN ('$super_admins') ORDER BY ID ASC" ); // WPCS: unprepared SQL ok.
+		$user_ids     = $wpdb->get_col( "SELECT ID FROM $wpdb->users WHERE user_login IN ('$super_admins') ORDER BY ID ASC" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( ! $user_ids ) {
 			return 0;
 		}
 
-		$administrators = get_users( array(
-			'blog_id'     => imagify_tools_get_main_blog_id(),
-			'role'        => 'administrator',
-			'number'      => 100,
-			'orderby'     => 'ID',
-			'fields'      => 'ID',
-			'count_total' => false,
-		) );
+		$administrators = get_users(
+			array(
+				'blog_id'     => imagify_tools_get_main_blog_id(),
+				'role'        => 'administrator',
+				'number'      => 100,
+				'orderby'     => 'ID',
+				'fields'      => 'ID',
+				'count_total' => false,
+			)
+		);
 
 		$user_ids = array_intersect( $user_ids, $administrators );
 
@@ -822,11 +838,11 @@ class IMGT_Logs {
 
 		// Delete Postmeta.
 		$sql = sprintf( "DELETE FROM $wpdb->postmeta WHERE post_id IN (%s)", implode( ',', $post_ids ) );
-		$wpdb->query( $sql ); // WPCS: unprepared SQL ok.
+		$wpdb->query( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		// Delete Posts.
 		$sql = sprintf( "DELETE FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $post_ids ) );
-		$wpdb->query( $sql ); // WPCS: unprepared SQL ok.
+		$wpdb->query( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		return count( $post_ids );
 	}
@@ -882,12 +898,15 @@ class IMGT_Logs {
 	 * @return (array) The new args merged with default args.
 	 */
 	public function logs_query_args( $args = array() ) {
-		return array_merge( array(
-			'post_type'      => self::POST_TYPE,
-			'post_status'    => 'notpublic',
-			'posts_per_page' => -1,
-			'orderby'        => 'date menu_order',
-			'order'          => 'DESC',
-		), $args );
+		return array_merge(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'post_status'    => 'notpublic',
+				'posts_per_page' => -1,
+				'orderby'        => 'date menu_order',
+				'order'          => 'DESC',
+			),
+			$args
+		);
 	}
 }
