@@ -27,7 +27,7 @@ class IMGT_Nextgen_Gallery {
 	 * @since  1.0.3
 	 * @author Grégory Viguier
 	 */
-	protected static $_instance;
+	protected static $instance;
 
 	/**
 	 * The constructor.
@@ -48,11 +48,11 @@ class IMGT_Nextgen_Gallery {
 	 * @return object Main instance.
 	 */
 	public static function get_instance() {
-		if ( ! isset( self::$_instance ) ) {
-			self::$_instance = new self();
+		if ( ! isset( self::$instance ) ) {
+			self::$instance = new self();
 		}
 
-		return self::$_instance;
+		return self::$instance;
 	}
 
 	/**
@@ -63,7 +63,7 @@ class IMGT_Nextgen_Gallery {
 	 * @author Grégory Viguier
 	 */
 	public static function delete_instance() {
-		unset( self::$_instance );
+		unset( self::$instance );
 	}
 
 	/**
@@ -106,10 +106,22 @@ class IMGT_Nextgen_Gallery {
 	 * @return string
 	 */
 	public function manage_media_custom_column( $output, $image ) {
-		$attachment = new Imagify_NGG_Attachment( $image );
+		$output .= '<strong>' . __( 'NGG data:', 'imagify-tools' ) . '</strong>';
+		$output .= '<div style="overflow-x: auto; margin-bottom: 200px;"><pre>' . call_user_func( 'print_r', esc_html( $image ), 1 ) . '</pre></div>';
 
-		$output .= '<strong>' . __( 'Raw data:', 'imagify-tools' ) . '</strong>';
-		$output .= '<div style="overflow-x: auto; margin-bottom: 200px;"><pre>' . call_user_func( 'print_r', $attachment->get_row(), 1 ) . '</pre></div>';
+		if ( class_exists( '\\Imagify\\ThirdParty\\NGG\\Optimization\\Process\\NGG' ) ) {
+			$process = '\\Imagify\\ThirdParty\\NGG\\Optimization\\Process\\NGG';
+			$process = new $process( $image );
+			$data    = $process->get_data()->get_row();
+		} elseif ( class_exists( 'Imagify_NGG_Attachment' ) ) {
+			$attachment = new Imagify_NGG_Attachment( $image );
+			$data       = $attachment->get_row();
+		} else {
+			return $output;
+		}
+
+		$output .= '<strong>' . __( 'Imagify data:', 'imagify-tools' ) . '</strong>';
+		$output .= '<div style="overflow-x: auto; margin-bottom: 200px;"><pre>' . call_user_func( 'print_r', esc_html( $data ), 1 ) . '</pre></div>';
 
 		return $output;
 	}
