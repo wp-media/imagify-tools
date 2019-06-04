@@ -96,10 +96,11 @@ class IMGT_Admin_Model_Main {
 		/**
 		 * Chmod and backup dir.
 		 */
-		$chmod_dir        = fileperms( ABSPATH ) & 0777 | 0755;
-		$chmod_file       = fileperms( ABSPATH . 'index.php' ) & 0777 | 0644;
-		$backup_dir       = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
-		$imagify_settings = get_site_option( 'imagify_settings' );
+		$chmod_dir         = fileperms( ABSPATH ) & 0777 | 0755;
+		$chmod_file        = fileperms( ABSPATH . 'index.php' ) & 0777 | 0644;
+		$backup_dir        = trailingslashit( $wp_upload_dir['basedir'] ) . 'backup/';
+		$backup_dir_exists = file_exists( $backup_dir ) && wp_is_writable( $backup_dir );
+		$imagify_settings  = get_site_option( 'imagify_settings' );
 
 		$this->add_data_section(
 			__( 'WordPress Filesystem', 'imagify-tools' ),
@@ -383,10 +384,12 @@ class IMGT_Admin_Model_Main {
 		if ( function_exists( 'curl_version' ) ) {
 			$curl_array = curl_version();
 			$fields[]   = array(
-				'label'    => '<code>curl_version()</code>',
-				'value'    => $curl_array,
+				'label'     => '<code>curl_version()</code>',
+				'value'     => $curl_array,
 				// 7.34.0 is most probably the oldest version supported (so far, 7.29.0 fails and 7.35.0 successes).
-				'is_error' => ! empty( $curl_array['version'] ) ? version_compare( $curl_array['version'], '7.34' ) < 0 : true,
+				'is_error'  => ! empty( $curl_array['version'] ) ? version_compare( $curl_array['version'], '7.34' ) < 0 : true,
+				/* translators: 1 and 2 are cURL versions. */
+				'more_info' => sprintf( __( 'Version should be %1$s at least, but we have seen %2$s working.', 'imagify-tools' ), '<code>7.34</code>', '<code>7.29.0</code>' ),
 			);
 
 			$curl_features = array(
@@ -566,7 +569,7 @@ class IMGT_Admin_Model_Main {
 			);
 		}
 
-		$this->add_data_section( __( 'Attachments', 'imagify-tools' ), $attachments );
+		$this->add_data_section( __( 'Media', 'imagify-tools' ), $attachments );
 	}
 
 	/**
@@ -628,6 +631,11 @@ class IMGT_Admin_Model_Main {
 					'label'    => __( 'WP version', 'imagify-tools' ),
 					'value'    => $wp_version,
 					'is_error' => version_compare( $wp_version, '4.0' ) < 0,
+				),
+				array(
+					'label'    => __( 'Max execution time', 'imagify-tools' ),
+					'value'    => @ini_get( 'max_execution_time' ),
+					'is_error' => @ini_get( 'max_execution_time' ) < 30,
 				),
 				array(
 					/* translators: 1 and 2 are constant names. */
