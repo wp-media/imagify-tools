@@ -233,8 +233,8 @@ class IMGT_Attachments_Metas {
 			return;
 		}
 
-		$path    = wp_normalize_path( $path );
-		$exists  = file_exists( $path );
+		$path     = wp_normalize_path( $path );
+		$exists   = file_exists( $path );
 		$is_image = (object) wp_check_filetype( $path, IMGT_Tools::get_mime_types( 'image' ) );
 		$is_image = ! empty( $is_image->type );
 
