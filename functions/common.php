@@ -95,9 +95,11 @@ function imagify_tools_compress_data( $data ) {
 	$bsf = '64_' . $bsf;
 	$bsf = 'base' . $bsf;
 
-	return $bsf// phpcs:ignore PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket
-		( $gz// phpcs:ignore PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket
-			( serialize( $data ) ) ); // phpcs:ignore PEAR.Functions.FunctionCallSignature.Indent
+	// phpcs:disable PEAR.Functions.FunctionCallSignature.Indent, PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket, PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket, PEAR.Functions.FunctionCallSignature.CloseBracketLine, WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+	return $bsf
+		( $gz
+			( serialize( $data ) ) );
+	// phpcs:enable PEAR.Functions.FunctionCallSignature.Indent, PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket, PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket, PEAR.Functions.FunctionCallSignature.CloseBracketLine, WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
 }
 
 
@@ -186,7 +188,7 @@ function imagify_tools_get_ip() {
 	);
 
 	foreach ( $keys as $key ) {
-		$ip = isset( $_SERVER[ $key ] ) ? wp_unslash( $_SERVER[ $key ] ) : null; // WPCS: input var okay, sanitization ok.
+		$ip = isset( $_SERVER[ $key ] ) ? wp_unslash( $_SERVER[ $key ] ) : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		if ( ! $ip ) {
 			continue;

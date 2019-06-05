@@ -37,10 +37,12 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 	 * @param array $args An associative array of arguments.
 	 */
 	public function __construct( $args = array() ) {
-		parent::__construct( array(
-			'plural' => $args['screen']->post_type,
-			'screen' => $args['screen'],
-		) );
+		parent::__construct(
+			array(
+				'plural' => $args['screen']->post_type,
+				'screen' => $args['screen'],
+			)
+		);
 	}
 
 	/**
@@ -68,14 +70,13 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 		$post_type = $this->screen->post_type;
 
 		// Set some globals.
-		$mode = 'list'; // WPCS: override ok.
-
-		$per_page = $this->get_items_per_page( 'edit_' . $post_type . '_per_page' ); // WPCS: override ok.
+		$mode     = 'list';
+		$per_page = $this->get_items_per_page( 'edit_' . $post_type . '_per_page' );
 
 		/** This filter is documented in wp-admin/includes/post.php */
-		$per_page = apply_filters( 'edit_posts_per_page', $per_page, $post_type ); // WPCS: override ok.
+		$per_page = apply_filters( 'edit_posts_per_page', $per_page, $post_type );
 
-		$avail_post_stati = get_available_post_statuses( $post_type ); // WPCS: override ok.
+		$avail_post_stati = get_available_post_statuses( $post_type );
 
 		// Get posts.
 		$this->query();
@@ -87,10 +88,12 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 			$total_items = array_sum( $post_counts );
 		}
 
-		$this->set_pagination_args( array(
-			'total_items' => $total_items,
-			'per_page'    => $per_page,
-		) );
+		$this->set_pagination_args(
+			array(
+				'total_items' => $total_items,
+				'per_page'    => $per_page,
+			)
+		);
 	}
 
 	/**
@@ -103,9 +106,11 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 		global $avail_post_stati;
 
 		// Prepare the query args.
-		$args = IMGT_Logs::get_instance()->logs_query_args( array(
-			'post_type' => $this->screen->post_type,
-		) );
+		$args = IMGT_Logs::get_instance()->logs_query_args(
+			array(
+				'post_type' => $this->screen->post_type,
+			)
+		);
 
 		// Order by.
 		$orderby = filter_input( INPUT_GET, 'orderby', FILTER_SANITIZE_STRING );
@@ -142,7 +147,7 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 		$args['posts_per_page'] = apply_filters( 'edit_posts_per_page', $args['posts_per_page'], $args['post_type'] );
 
 		// Don't allow plugins to mess our request.
-		$min_prio = defined( 'PHP_INT_MIN' ) ? PHP_INT_MIN : -2147483648;
+		$min_prio = defined( 'PHP_INT_MIN' ) ? PHP_INT_MIN : -2147483648; // phpcs:ignore PHPCompatibility.Constants.NewConstants.php_int_minFound
 		add_filter( 'request', array( $this, 'store_request' ), $min_prio + 10 );
 		add_filter( 'request', array( $this, 'force_initial_request' ), PHP_INT_MAX - 10 );
 
@@ -215,7 +220,7 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 	 * @return bool Whether the current view is the "All" view.
 	 */
 	protected function is_base_request() {
-		$vars = $_GET; // WPCS: CSRF ok, input var okay.
+		$vars = $_GET; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $vars['paged'] );
 
 		if ( empty( $vars ) ) {
@@ -441,7 +446,7 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 			<span class="screen-reader-text">
 				<?php
 				/* translators: %s is a Post title. */
-				printf( __( 'Select &#8220;%s&#8221;', 'imagify-tools' ), strip_tags( $this->log->get_title() ) );
+				printf( __( 'Select &#8220;%s&#8221;', 'imagify-tools' ), wp_strip_all_tags( $this->log->get_title() ) );
 				?>
 			</span>
 			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
@@ -484,7 +489,7 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 		$view_href = add_query_arg( array( 'log' => $post->ID ), $this->paged_page_url() );
 
 		/* translators: %s is a Post title. */
-		echo '<a class="imgt-view-log" href="' . esc_url( $view_href ) . '" title="' . esc_attr( sprintf( __( 'View &#8220;%s&#8221;', 'imagify-tools' ), strip_tags( $title ) ) ) . '">';
+		echo '<a class="imgt-view-log" href="' . esc_url( $view_href ) . '" title="' . esc_attr( sprintf( __( 'View &#8220;%s&#8221;', 'imagify-tools' ), wp_strip_all_tags( $title ) ) ) . '">';
 			echo $title;
 		echo "</a>\n";
 
@@ -535,14 +540,14 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 		$global_post = get_post();
 		$post        = get_post( $post );
 
-		$GLOBALS['post'] = $post; // WPCS: override ok.
+		$GLOBALS['post'] = $post;
 		setup_postdata( $post );
 		?>
 		<tr id="post-<?php echo $post->ID; ?>" class="<?php echo implode( ' ', get_post_class( 'level-0', $post->ID ) ); ?>">
 			<?php $this->single_row_columns( $post ); ?>
 		</tr>
 		<?php
-		$GLOBALS['post'] = $global_post; // WPCS: override ok.
+		$GLOBALS['post'] = $global_post;
 	}
 
 	/**

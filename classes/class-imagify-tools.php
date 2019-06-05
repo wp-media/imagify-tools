@@ -49,7 +49,7 @@ class Imagify_Tools {
 	 *
 	 * @var object
 	 */
-	protected static $_instance;
+	protected static $instance;
 
 	/**
 	 * The constructor.
@@ -68,11 +68,11 @@ class Imagify_Tools {
 	 * @return object Main instance.
 	 */
 	public static function get_instance() {
-		if ( ! isset( self::$_instance ) ) {
-			self::$_instance = new self();
+		if ( ! isset( self::$instance ) ) {
+			self::$instance = new self();
 		}
 
-		return self::$_instance;
+		return self::$instance;
 	}
 
 	/**
@@ -82,7 +82,7 @@ class Imagify_Tools {
 	 * @author Grégory Viguier
 	 */
 	public static function delete_instance() {
-		unset( self::$_instance );
+		unset( self::$instance );
 	}
 
 	/**
@@ -131,7 +131,6 @@ class Imagify_Tools {
 
 		// Init classes.
 		IMGT_Logs::get_instance()->init();
-		IMGT_Hooks::get_instance()->init();
 
 		if ( is_admin() ) {
 			IMGT_Admin_Post::get_instance()->init();
@@ -319,7 +318,6 @@ class Imagify_Tools {
 			'IMGT_Admin_View_Main'   => 1,
 			'IMGT_Admin_View_Logs'   => 1,
 			'IMGT_Attachments_Metas' => 1,
-			'IMGT_Hooks'             => 1,
 			'IMGT_Logs'              => 1,
 			'IMGT_Logs_List_Table'   => 1,
 			'IMGT_Log'               => 1,

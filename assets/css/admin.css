@@ -279,8 +279,8 @@ button.imgt-virgin {
 .imgt-wrap tr + tr > td {
 	border-top: 1px solid #e5e5e5;
 }
-.imgt-wrap .row-error > th,
-.imgt-wrap .row-error > td {
+.imgt-wrap .row-error th,
+.imgt-wrap .row-error td {
 	color: #fff;
 	font-weight: bold;
 	background: #C51162;

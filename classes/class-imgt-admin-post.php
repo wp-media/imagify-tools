@@ -29,7 +29,7 @@ class IMGT_Admin_Post {
 	 *
 	 * @var object
 	 */
-	protected static $_instance;
+	protected static $instance;
 
 	/**
 	 * The constructor.
@@ -48,11 +48,11 @@ class IMGT_Admin_Post {
 	 * @return object Main instance.
 	 */
 	public static function get_instance() {
-		if ( ! isset( self::$_instance ) ) {
-			self::$_instance = new self();
+		if ( ! isset( self::$instance ) ) {
+			self::$instance = new self();
 		}
 
-		return self::$_instance;
+		return self::$instance;
 	}
 
 	/**
@@ -62,7 +62,7 @@ class IMGT_Admin_Post {
 	 * @author Grégory Viguier
 	 */
 	public static function delete_instance() {
-		unset( self::$_instance );
+		unset( self::$instance );
 	}
 
 	/**
@@ -93,9 +93,6 @@ class IMGT_Admin_Post {
 		// Ajax test.
 		add_action( 'wp_ajax_' . self::get_action( 'test' ),                                        array( $this, 'ajax_test_cb' ) );
 		add_action( 'admin_post_' . self::get_action( 'test' ),                                     array( $this, 'ajax_test_cb' ) );
-
-		// Blocking requests.
-		add_action( 'admin_post_' . self::get_action( 'switch_blocking_requests' ),                 array( $this, 'switch_blocking_requests_cb' ) );
 
 		// Clear request cache.
 		add_action( 'admin_post_' . self::get_action( 'clear_request_cache' ),                      array( $this, 'clear_request_cache_cb' ) );
@@ -163,7 +160,7 @@ class IMGT_Admin_Post {
 
 				echo $log_header;
 				echo '[' . $log->get_time() . "]\n";
-				echo html_entity_decode( strip_tags( str_replace( '<br/>', "\n", $log->get_message() ) ) );
+				echo html_entity_decode( wp_strip_all_tags( str_replace( '<br/>', "\n", $log->get_message() ) ) );
 				echo "\n\n";
 			}
 		}
@@ -195,13 +192,18 @@ class IMGT_Admin_Post {
 	public function bulk_delete_logs_cb() {
 		$this->check_nonce_and_user( 'imgt-bulk-logs' ); // Common nonce value to all bulk actions.
 
-		$logs = filter_input( INPUT_GET, 'post', FILTER_VALIDATE_INT, array(
-			'flags'   => FILTER_REQUIRE_ARRAY,
-			'options' => array(
-				'default'   => 0,
-				'min_range' => 0,
-			),
-		) );
+		$logs = filter_input(
+			INPUT_GET,
+			'post',
+			FILTER_VALIDATE_INT,
+			array(
+				'flags'   => FILTER_REQUIRE_ARRAY,
+				'options' => array(
+					'default'   => 0,
+					'min_range' => 0,
+				),
+			)
+		);
 
 		if ( ! $logs ) {
 			$deleted = 0;
@@ -223,12 +225,17 @@ class IMGT_Admin_Post {
 	public function delete_log_cb() {
 		$this->check_nonce_and_user( self::get_action( 'delete_log' ) );
 
-		$log = filter_input( INPUT_GET, 'log', FILTER_VALIDATE_INT, array(
-			'options' => array(
-				'default'   => 0,
-				'min_range' => 0,
-			),
-		) );
+		$log = filter_input(
+			INPUT_GET,
+			'log',
+			FILTER_VALIDATE_INT,
+			array(
+				'options' => array(
+					'default'   => 0,
+					'min_range' => 0,
+				),
+			)
+		);
 
 		if ( ! $log ) {
 			wp_nonce_ays( '' );
@@ -250,26 +257,6 @@ class IMGT_Admin_Post {
 	public function ajax_test_cb() {
 		echo 'OK';
 		die();
-	}
-
-	/**
-	 * Make our async optimization blocking (or non blocking), so it can be easily debugged with Logs.
-	 *
-	 * @since  1.0
-	 * @author Grégory Viguier
-	 */
-	public function switch_blocking_requests_cb() {
-		$this->check_nonce_and_user( self::get_action( 'switch_blocking_requests' ) );
-
-		if ( imagify_tools_get_site_transient( 'imgt_blocking_requests' ) ) {
-			// Go back to blocking requests.
-			imagify_tools_delete_site_transient( 'imgt_blocking_requests' );
-			$this->redirect( 'blocking_requests', __( 'Async optimization is back to normal.', 'imagify-tools' ) );
-		}
-
-		imagify_tools_set_site_transient( 'imgt_blocking_requests', 1, 4 * HOUR_IN_SECONDS );
-
-		$this->redirect( 'non_blocking_requests', __( 'Optimization is not async anymore.', 'imagify-tools' ) );
 	}
 
 	/**
@@ -345,7 +332,7 @@ class IMGT_Admin_Post {
 
 		$this->check_nonce_and_user( self::get_action( 'fix_ngg_table_engine' ) );
 
-		$wpdb->query( "ALTER TABLE {$wpdb->prefix}ngg_imagify_data ENGINE=InnoDB;" );
+		$wpdb->query( "ALTER TABLE {$wpdb->prefix}ngg_imagify_data ENGINE=InnoDB;" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
 
 		$this->redirect( 'ngg_table_engine_fixed', __( 'NGG table engine fixed.', 'imagify-tools' ) );
 	}
