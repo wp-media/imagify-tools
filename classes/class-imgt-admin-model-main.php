@@ -157,8 +157,8 @@ class IMGT_Admin_Model_Main {
 				),
 				array(
 					'label'     => __( 'Backups folder exists and is writable', 'imagify-tools' ),
-					'value'     => file_exists( $backup_dir ) && wp_is_writable( $backup_dir ),
-					'compare'   => ! empty( $imagify_settings['backup'] ),
+					'value'     => $backup_dir_exists,
+					'is_error'  => ! empty( $imagify_settings['backup'] ) ? ! $backup_dir_exists : false,
 					'more_info' => ! empty( $imagify_settings['backup'] ) ? __( 'Backup is enabled.', 'imagify-tools' ) : __( 'No need, backup is disabled.', 'imagify-tools' ),
 				),
 				array(
@@ -523,6 +523,10 @@ class IMGT_Admin_Model_Main {
 				'value'     => $this->count_medias_with_invalid_wp_metas(),
 				'is_error'  => $this->count_medias_with_invalid_wp_metas() > 0,
 				'more_info' => $this->get_clear_cache_link( 'imgt_medias_invalid_wp_metas', 'clear_medias_with_invalid_wp_metas_cache' ),
+			),
+			array(
+				'label' => __( 'Number of thumbnail sizes', 'imagify-tools' ),
+				'value' => count( IMGT_Tools::get_thumbnail_sizes() ),
 			),
 		);
 
