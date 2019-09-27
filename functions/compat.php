@@ -294,130 +294,138 @@ endif;
 /** IMAGIFY ===================================================================================== */
 /** --------------------------------------------------------------------------------------------- */
 
-if ( ! function_exists( 'imagify_get_mime_types' ) ) :
-	/**
-	 * Get all mime types which could be optimized by Imagify.
-	 *
-	 * @since 1.1
-	 * @since Imagify 1.7
-	 *
-	 * @param  string $type One of 'image', 'not-image'. Any other value will return all mime types.
-	 * @return array        The mime types.
-	 */
-	function imagify_get_mime_types( $type = null ) {
-		$mimes = array();
-
-		if ( 'not-image' !== $type ) {
-			$mimes = array(
-				'jpg|jpeg|jpe' => 'image/jpeg',
-				'png'          => 'image/png',
-				'gif'          => 'image/gif',
-			);
-		}
-
-		if ( 'image' !== $type ) {
-			$mimes['pdf'] = 'application/pdf';
-		}
-
-		return $mimes;
+/**
+ * Get all mime types which could be optimized by Imagify.
+ *
+ * @since 1.1
+ * @since Imagify 1.7
+ *
+ * @param  string $type One of 'image', 'not-image'. Any other value will return all mime types.
+ * @return array        The mime types.
+ */
+function imagify_tools_get_mime_types( $type = null ) {
+	if ( function_exists( 'imagify_get_mime_types' ) ) {
+		return imagify_tools_get_mime_types( $type );
 	}
-endif;
 
-if ( ! function_exists( 'imagify_is_attachment_mime_type_supported' ) ) :
-	/**
-	 * Tell if an attachment has a supported mime type.
-	 * Was previously Imagify_AS3CF::is_mime_type_supported() since 1.6.6.
-	 * Ironically, this function is used in Imagify::is_mime_type_supported() since 1.6.9.
-	 *
-	 * @since  1.0
-	 * @since  Imagify 1.6.8
-	 * @author Grégory Viguier
-	 * @source Imagify
-	 *
-	 * @param  int $attachment_id The attachment ID.
-	 * @return bool
-	 */
-	function imagify_is_attachment_mime_type_supported( $attachment_id ) {
-		static $is = array( false );
+	$mimes = array();
 
-		$attachment_id = absint( $attachment_id );
+	if ( 'not-image' !== $type ) {
+		$mimes = array(
+			'jpg|jpeg|jpe' => 'image/jpeg',
+			'png'          => 'image/png',
+			'gif'          => 'image/gif',
+		);
+	}
 
-		if ( isset( $is[ $attachment_id ] ) ) {
-			return $is[ $attachment_id ];
-		}
+	if ( 'image' !== $type ) {
+		$mimes['pdf'] = 'application/pdf';
+	}
 
-		$mime_types = imagify_get_mime_types();
-		$mime_types = array_flip( $mime_types );
-		$mime_type  = (string) get_post_mime_type( $attachment_id );
+	return $mimes;
+}
 
-		$is[ $attachment_id ] = isset( $mime_types[ $mime_type ] );
+/**
+ * Tell if an attachment has a supported mime type.
+ * Was previously Imagify_AS3CF::is_mime_type_supported() since 1.6.6.
+ * Ironically, this function is used in Imagify::is_mime_type_supported() since 1.6.9.
+ *
+ * @since  1.0
+ * @since  Imagify 1.6.8
+ * @author Grégory Viguier
+ * @source Imagify
+ *
+ * @param  int $attachment_id The attachment ID.
+ * @return bool
+ */
+function imagify_tools_is_attachment_mime_type_supported( $attachment_id ) {
+	if ( function_exists( 'imagify_is_attachment_mime_type_supported' ) ) {
+		return imagify_is_attachment_mime_type_supported( $attachment_id );
+	}
 
+	static $is = array( false );
+
+	$attachment_id = absint( $attachment_id );
+
+	if ( isset( $is[ $attachment_id ] ) ) {
 		return $is[ $attachment_id ];
 	}
-endif;
 
-if ( ! function_exists( 'imagify_get_filesystem' ) ) :
-	/**
-	 * Get WP Direct filesystem object. Also define chmod constants if not done yet.
-	 *
-	 * @since  1.0
-	 * @since  Imagify 1.6.5
-	 * @author Grégory Viguier
-	 * @source Imagify
-	 *
-	 * @return object A `$wp_filesystem` object.
-	 */
-	function imagify_get_filesystem() {
-		static $filesystem;
+	$mime_types = imagify_tools_get_mime_types();
+	$mime_types = array_flip( $mime_types );
+	$mime_type  = (string) get_post_mime_type( $attachment_id );
 
-		if ( $filesystem ) {
-			return $filesystem;
-		}
+	$is[ $attachment_id ] = isset( $mime_types[ $mime_type ] );
 
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+	return $is[ $attachment_id ];
+}
 
-		$filesystem = new WP_Filesystem_Direct( new StdClass() );
+/**
+ * Get WP Direct filesystem object. Also define chmod constants if not done yet.
+ *
+ * @since  1.0
+ * @since  Imagify 1.6.5
+ * @author Grégory Viguier
+ * @source Imagify
+ *
+ * @return object A `$wp_filesystem` object.
+ */
+function imagify_tools_get_filesystem() {
+	static $filesystem;
 
-		// Set the permission constants if not already set.
-		if ( ! defined( 'FS_CHMOD_DIR' ) ) {
-			define( 'FS_CHMOD_DIR', ( fileperms( ABSPATH ) & 0777 | 0755 ) );
-		}
-		if ( ! defined( 'FS_CHMOD_FILE' ) ) {
-			define( 'FS_CHMOD_FILE', ( fileperms( ABSPATH . 'index.php' ) & 0777 | 0644 ) );
-		}
+	if ( function_exists( 'imagify_get_filesystem' ) ) {
+		return imagify_get_filesystem();
+	}
 
+	if ( $filesystem ) {
 		return $filesystem;
 	}
-endif;
 
-if ( ! function_exists( 'imagify_is_active_for_network' ) ) :
-	/**
-	 * Check if Imagify is activated on the network.
-	 *
-	 * @since 1.1
-	 * @since Imagify 1.0
-	 *
-	 * return bool True if Imagify is activated on the network.
-	 */
-	function imagify_is_active_for_network() {
-		static $is;
+	require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+	require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 
-		if ( isset( $is ) ) {
-			return $is;
-		}
+	$filesystem = new WP_Filesystem_Direct( new StdClass() );
 
-		if ( ! is_multisite() ) {
-			$is = false;
-			return $is;
-		}
+	// Set the permission constants if not already set.
+	if ( ! defined( 'FS_CHMOD_DIR' ) ) {
+		define( 'FS_CHMOD_DIR', ( fileperms( ABSPATH ) & 0777 | 0755 ) );
+	}
+	if ( ! defined( 'FS_CHMOD_FILE' ) ) {
+		define( 'FS_CHMOD_FILE', ( fileperms( ABSPATH . 'index.php' ) & 0777 | 0644 ) );
+	}
 
-		if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
+	return $filesystem;
+}
 
-		$is = is_plugin_active_for_network( plugin_basename( 'imagify/imagify.php' ) );
+/**
+ * Check if Imagify is activated on the network.
+ *
+ * @since 1.1
+ * @since Imagify 1.0
+ *
+ * return bool True if Imagify is activated on the network.
+ */
+function imagify_tools_is_active_for_network() {
+	static $is;
 
+	if ( function_exists( 'imagify_is_active_for_network' ) ) {
+		return imagify_is_active_for_network();
+	}
+
+	if ( isset( $is ) ) {
 		return $is;
 	}
-endif;
+
+	if ( ! is_multisite() ) {
+		$is = false;
+		return $is;
+	}
+
+	if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+
+	$is = is_plugin_active_for_network( plugin_basename( 'imagify/imagify.php' ) );
+
+	return $is;
+}
