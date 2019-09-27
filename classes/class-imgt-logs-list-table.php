@@ -125,6 +125,10 @@ class IMGT_Logs_List_Table extends WP_List_Table {
 			}
 		}
 
+		if ( empty( $args['orderby'] ) ) {
+			$args['orderby'] = 'date menu_order';
+		}
+
 		// Order.
 		if ( empty( $args['order'] ) ) {
 			$args['order'] = 'date menu_order' === $args['orderby'] ? 'DESC' : 'ASC';
