@@ -1228,6 +1228,10 @@ class IMGT_Admin_Model_Main {
 		$action = IMGT_Admin_Post::get_action( $action );
 		$url    = wp_nonce_url( admin_url( 'admin-post.php?action=' . $action ), $action );
 
+		if ( empty( $args['_wp_http_referer'] ) ) {
+			$args['_wp_http_referer'] = wp_unslash( $_SERVER['REQUEST_URI'] );
+		}
+
 		return $args ? add_query_arg( $args, $url ) : $url;
 	}
 
