@@ -610,16 +610,6 @@ class IMGT_Admin_Model_Main {
 		/**
 		 * $_SERVER.
 		 */
-		$server_data = $_SERVER;
-
-		if ( $server_data && is_array( $server_data ) ) {
-			foreach ( $server_data as $k => $v ) {
-				if ( strpos( $k, 'HTTP_' ) === 0 ) {
-					unset( $server_data[ $k ] );
-				}
-			}
-		}
-
 		$this->add_data_section(
 			__( 'Various Tests and Values', 'imagify-tools' ),
 			array(
@@ -688,7 +678,7 @@ class IMGT_Admin_Model_Main {
 				),
 				array(
 					'label' => '$_SERVER',
-					'value' => $this->sanitize( $server_data ),
+					'value' => $this->sanitize( $_SERVER ),
 				),
 			)
 		);
