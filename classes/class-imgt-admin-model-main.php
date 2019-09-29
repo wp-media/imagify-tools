@@ -972,6 +972,9 @@ class IMGT_Admin_Model_Main {
 	 */
 	public function get_hosting_company() {
 		switch ( true ) {
+			case defined( 'IS_PRESSABLE' ):
+				return 'Pressable';
+
 			case defined( 'FLYWHEEL_CONFIG_DIR' ):
 				return 'FlyWheel';
 
