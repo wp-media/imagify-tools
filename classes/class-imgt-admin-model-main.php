@@ -555,11 +555,18 @@ class IMGT_Admin_Model_Main {
 			);
 		}
 
-		if ( function_exists( 'get_imagify_bulk_buffer_size' ) ) {
+		if ( function_exists( 'get_imagify_bulk_buffer_size' ) && defined( 'IMAGIFY_VERSION' ) && version_compare( IMAGIFY_VERSION, '1.9' ) < 0 ) {
+			// The function is deprecated in Imagify 1.9.
 			$sizes = array(
 				'wp'   => get_imagify_bulk_buffer_size(),
 				'File' => get_imagify_bulk_buffer_size( 1 ),
 			);
+		} else {
+			$sizes = array(
+				'wp'   => 4,
+				'File' => 4,
+			);
+		}
 
 			/** This filter is documented in /imagify/inc/functions/i18n.php. */
 			$sizes['wp'] = apply_filters( 'imagify_bulk_buffer_size', $sizes['wp'] );
@@ -571,7 +578,6 @@ class IMGT_Admin_Model_Main {
 				'label' => __( 'Number of parallel optimizations in bulk optimizer', 'imagify-tools' ),
 				'value' => $sizes,
 			);
-		}
 
 		$this->add_data_section( __( 'Media', 'imagify-tools' ), $attachments );
 	}
