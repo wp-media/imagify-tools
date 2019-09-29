@@ -346,7 +346,7 @@ class IMGT_Admin_Post {
 	public function uninstall_cb() {
 		$this->check_nonce_and_user( self::get_action( 'uninstall' ) );
 
-		$filesystem = imagify_get_filesystem();
+		$filesystem = imagify_tools_get_filesystem();
 
 		if ( Imagify_Tools::is_muplugin() ) {
 			define( 'WP_UNINSTALL_PLUGIN', 1 );

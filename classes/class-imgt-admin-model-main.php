@@ -67,7 +67,7 @@ class IMGT_Admin_Model_Main {
 		/**
 		 * Define FS_CHMOD_DIR and FS_CHMOD_FILE.
 		 */
-		imagify_get_filesystem();
+		imagify_tools_get_filesystem();
 
 		/**
 		 * Uploads dir and URL.
@@ -189,7 +189,7 @@ class IMGT_Admin_Model_Main {
 		/**
 		 * Chmod and backup dir.
 		 */
-		$filesystem            = imagify_get_filesystem();
+		$filesystem            = imagify_tools_get_filesystem();
 		$is_imagify_filesystem = $filesystem instanceof Imagify_Filesystem;
 		$fields                = array();
 
