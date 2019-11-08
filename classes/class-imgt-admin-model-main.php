@@ -568,16 +568,26 @@ class IMGT_Admin_Model_Main {
 			);
 		}
 
-			/** This filter is documented in /imagify/inc/functions/i18n.php. */
-			$sizes['wp'] = apply_filters( 'imagify_bulk_buffer_size', $sizes['wp'] );
-
-			/** This filter is documented in /imagify/inc/functions/i18n.php. */
-			$sizes = apply_filters( 'imagify_bulk_buffer_sizes', $sizes );
+		if ( function_exists( 'wp_create_image_subsizes' ) ) {
+			/** This filter is documented in wp-admin/includes/image.php. */
+			$threshold = (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 );
 
 			$attachments[] = array(
-				'label' => __( 'Number of parallel optimizations in bulk optimizer', 'imagify-tools' ),
-				'value' => $sizes,
+				'label' => __( 'Resizing threshold', 'imagify-tools' ),
+				'value' => $threshold,
 			);
+		}
+
+		/** This filter is documented in /imagify/inc/functions/i18n.php. */
+		$sizes['wp'] = apply_filters( 'imagify_bulk_buffer_size', $sizes['wp'] );
+
+		/** This filter is documented in /imagify/inc/functions/i18n.php. */
+		$sizes = apply_filters( 'imagify_bulk_buffer_sizes', $sizes );
+
+		$attachments[] = array(
+			'label' => __( 'Number of parallel optimizations in bulk optimizer', 'imagify-tools' ),
+			'value' => $sizes,
+		);
 
 		$this->add_data_section( __( 'Media', 'imagify-tools' ), $attachments );
 	}
@@ -1227,8 +1237,8 @@ class IMGT_Admin_Model_Main {
 		$action = IMGT_Admin_Post::get_action( $action );
 		$url    = wp_nonce_url( admin_url( 'admin-post.php?action=' . $action ), $action );
 
-		if ( empty( $args['_wp_http_referer'] ) ) {
-			$args['_wp_http_referer'] = wp_unslash( $_SERVER['REQUEST_URI'] );
+		if ( empty( $args['_wp_http_referer'] ) && ! empty( $_SERVER['REQUEST_URI'] ) ) {
+			$args['_wp_http_referer'] = sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) );
 		}
 
 		return $args ? add_query_arg( $args, $url ) : $url;
