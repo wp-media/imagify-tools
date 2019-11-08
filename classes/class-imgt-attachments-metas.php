@@ -307,7 +307,7 @@ class IMGT_Attachments_Metas {
 			$imagify_sizes         = ! empty( $data['args']['metas']['_imagify_data'][0]['sizes'] ) && is_array( $data['args']['metas']['_imagify_data'][0]['sizes'] ) ? $data['args']['metas']['_imagify_data'][0]['sizes'] : array();
 			$disallowed_sizes      = get_site_option( 'imagify_settings' );
 			$disallowed_sizes      = ! empty( $disallowed_sizes['disallowed-sizes'] ) && is_array( $disallowed_sizes['disallowed-sizes'] ) ? $disallowed_sizes['disallowed-sizes'] : array();
-			$is_active_for_network = imagify_tools_is_active_for_network();
+			$is_active_for_network = imagify_tools_imagify_is_active_for_network();
 
 			if ( ! empty( $imagify_sizes['full@imagify-webp'] ) ) {
 				if ( file_exists( $path . '.webp' ) ) {
