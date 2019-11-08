@@ -405,7 +405,7 @@ function imagify_tools_get_filesystem() {
  *
  * return bool True if Imagify is activated on the network.
  */
-function imagify_tools_imagify_is_active_for_network() {
+function imagify_tools_is_active_for_network() {
 	static $is;
 
 	if ( function_exists( 'imagify_is_active_for_network' ) ) {

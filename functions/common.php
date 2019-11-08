@@ -45,7 +45,7 @@ function imagify_tools_is_active_for_network() {
  * @return string
  */
 function imagify_tools_get_capacity() {
-	return imagify_tools_imagify_is_active_for_network() ? 'manage_network_options' : 'manage_options';
+	return imagify_tools_is_active_for_network() ? 'manage_network_options' : 'manage_options';
 }
 
 
