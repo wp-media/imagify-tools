@@ -107,7 +107,7 @@ class IMGT_Nextgen_Gallery {
 	 */
 	public function manage_media_custom_column( $output, $image ) {
 		$output .= '<strong>' . __( 'NGG data:', 'imagify-tools' ) . '</strong>';
-		$output .= '<div style="overflow-x: auto; margin-bottom: 200px;"><pre>' . call_user_func( 'print_r', esc_html( $image ), 1 ) . '</pre></div>';
+		$output .= '<div style="overflow-x: auto; margin-bottom: 200px;"><pre>' . esc_html( call_user_func( 'print_r', $image, 1 ) ) . '</pre></div>';
 
 		if ( class_exists( '\\Imagify\\ThirdParty\\NGG\\Optimization\\Process\\NGG' ) ) {
 			$process = '\\Imagify\\ThirdParty\\NGG\\Optimization\\Process\\NGG';
@@ -121,7 +121,7 @@ class IMGT_Nextgen_Gallery {
 		}
 
 		$output .= '<strong>' . __( 'Imagify data:', 'imagify-tools' ) . '</strong>';
-		$output .= '<div style="overflow-x: auto; margin-bottom: 200px;"><pre>' . call_user_func( 'print_r', esc_html( $data ), 1 ) . '</pre></div>';
+		$output .= '<div style="overflow-x: auto; margin-bottom: 200px;"><pre>' . esc_html( call_user_func( 'print_r', $data, 1 ) ) . '</pre></div>';
 
 		return $output;
 	}

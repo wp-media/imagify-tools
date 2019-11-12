@@ -88,7 +88,7 @@ class IMGT_Attachments_Metas {
 	public function add_meta_boxes() {
 		global $post;
 
-		if ( ! imagify_is_attachment_mime_type_supported( $post->ID ) ) {
+		if ( ! imagify_tools_is_attachment_mime_type_supported( $post->ID ) ) {
 			return;
 		}
 
@@ -300,44 +300,57 @@ class IMGT_Attachments_Metas {
 		$sizes       = ! empty( $data['args']['metas']['_wp_attachment_metadata'][0]['sizes'] ) && is_array( $data['args']['metas']['_wp_attachment_metadata'][0]['sizes'] ) ? $data['args']['metas']['_wp_attachment_metadata'][0]['sizes'] : array();
 		$thumb_error = true;
 
-		if ( $is_image && $sizes ) {
+		if ( $is_image ) {
 			$thumb_error           = false;
 			$original_dirname      = trailingslashit( dirname( $path ) );
 			$tmp_sizes             = array();
 			$imagify_sizes         = ! empty( $data['args']['metas']['_imagify_data'][0]['sizes'] ) && is_array( $data['args']['metas']['_imagify_data'][0]['sizes'] ) ? $data['args']['metas']['_imagify_data'][0]['sizes'] : array();
 			$disallowed_sizes      = get_site_option( 'imagify_settings' );
 			$disallowed_sizes      = ! empty( $disallowed_sizes['disallowed-sizes'] ) && is_array( $disallowed_sizes['disallowed-sizes'] ) ? $disallowed_sizes['disallowed-sizes'] : array();
-			$is_active_for_network = imagify_is_active_for_network();
+			$is_active_for_network = imagify_tools_imagify_is_active_for_network();
 
-			foreach ( $sizes as $size_name => $size_data ) {
-				if ( file_exists( $original_dirname . $size_data['file'] ) ) {
+			if ( ! empty( $imagify_sizes['full@imagify-webp'] ) ) {
+				if ( file_exists( $path . '.webp' ) ) {
 					/* translators: 1 and 2 are whatever you like them to be. Even more. */
-					$sizes[ $size_name ] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Exists', 'File', 'imagify-tools' ), $size_name );
+					$tmp_sizes['full@imagify-webp'] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Exists', 'File', 'imagify-tools' ), 'full' );
 				} else {
 					$thumb_error = true;
 					/* translators: 1 and 2 are whatever you like them to be. Even more. */
-					$sizes[ $size_name ] = '☠️ ' . sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Does not exist', 'File', 'imagify-tools' ), $size_name );
+					$tmp_sizes['full@imagify-webp'] = '☠️ ' . sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Does not exist', 'File', 'imagify-tools' ), 'full' );
 				}
+			}
 
-				// Webp.
-				$webp_size_name = $size_name . '@imagify-webp';
+			if ( $sizes ) {
+				foreach ( $sizes as $size_name => $size_data ) {
+					if ( file_exists( $original_dirname . $size_data['file'] ) ) {
+						/* translators: 1 and 2 are whatever you like them to be. Even more. */
+						$sizes[ $size_name ] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Exists', 'File', 'imagify-tools' ), $size_name );
+					} else {
+						$thumb_error = true;
+						/* translators: 1 and 2 are whatever you like them to be. Even more. */
+						$sizes[ $size_name ] = '☠️ ' . sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Does not exist', 'File', 'imagify-tools' ), $size_name );
+					}
 
-				if ( empty( $imagify_sizes[ $webp_size_name ] ) ) {
-					// Not created.
-					continue;
-				}
+					// Webp.
+					$webp_size_name = $size_name . '@imagify-webp';
 
-				if ( ! $is_active_for_network && isset( $disallowed_sizes[ $size_name ] ) ) {
-					// Size is disabled.
-					/* translators: 1 and 2 are whatever you like them to be. Even more. */
-					$tmp_sizes[ $webp_size_name ] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Disabled', 'Thumbnail size', 'imagify-tools' ), $size_name );
-				} elseif ( file_exists( $original_dirname . $size_data['file'] . '.webp' ) ) {
-					/* translators: 1 and 2 are whatever you like them to be. Even more. */
-					$tmp_sizes[ $webp_size_name ] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Exists', 'File', 'imagify-tools' ), $size_name );
-				} else {
-					$thumb_error = true;
-					/* translators: 1 and 2 are whatever you like them to be. Even more. */
-					$tmp_sizes[ $webp_size_name ] = '☠️ ' . sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Does not exist', 'File', 'imagify-tools' ), $size_name );
+					if ( empty( $imagify_sizes[ $webp_size_name ] ) ) {
+						// Not created.
+						continue;
+					}
+
+					if ( ! $is_active_for_network && isset( $disallowed_sizes[ $size_name ] ) ) {
+						// Size is disabled.
+						/* translators: 1 and 2 are whatever you like them to be. Even more. */
+						$tmp_sizes[ $webp_size_name ] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Disabled', 'Thumbnail size', 'imagify-tools' ), $size_name );
+					} elseif ( file_exists( $original_dirname . $size_data['file'] . '.webp' ) ) {
+						/* translators: 1 and 2 are whatever you like them to be. Even more. */
+						$tmp_sizes[ $webp_size_name ] = sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Exists', 'File', 'imagify-tools' ), $size_name );
+					} else {
+						$thumb_error = true;
+						/* translators: 1 and 2 are whatever you like them to be. Even more. */
+						$tmp_sizes[ $webp_size_name ] = '☠️ ' . sprintf( __( '%1$s: %2$s', 'imagify-tools' ), _x( 'Does not exist', 'File', 'imagify-tools' ), $size_name );
+					}
 				}
 			}
 
@@ -360,7 +373,9 @@ class IMGT_Attachments_Metas {
 		$backup_dir = apply_filters( 'imagify_backup_directory', $backup_dir );
 		$backup_dir = trailingslashit( wp_normalize_path( $backup_dir ) );
 
-		$backup_path = $upload_basedir ? str_replace( $upload_basedir, $backup_dir, $path ) : '';
+		$backup_path = function_exists( 'wp_get_original_image_path' ) ? wp_get_original_image_path( $post->ID ) : $path;
+		$backup_path = $backup_path ? $backup_path : $path;
+		$backup_path = $upload_basedir ? str_replace( $upload_basedir, $backup_dir, $backup_path ) : '';
 		$has_backup  = file_exists( $backup_path );
 
 		/**
