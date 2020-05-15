@@ -4,6 +4,7 @@
  * Plugin URI: https://wordpress.org/plugins/imagify/
  * Description: A WordPress plugin helping debug in Imagify.
  * Version: 1.1.1
+ * Requires PHP: 5.3
  * Author: WP Media
  * Author URI: https://wp-media.me/
  * Licence: GPLv2
@@ -11,7 +12,7 @@
  * Text Domain: imagify-tools
  * Domain Path: languages
  *
- * Copyright 2019 WP Media
+ * Copyright 2020 WP Media
  *
  * @package WP-Media\Imagify\WordPress-Tools-Plugin
  */
@@ -22,7 +23,7 @@ defined( 'ABSPATH' ) || die( 'Cheatin’ uh?' );
  * Plugin init.
  */
 function imagify_tools_init() {
-	if ( ! function_exists( 'filter_var' ) || ! function_exists( 'filter_input' ) ) {
+	if ( ! function_exists( 'filter_var' ) || ! function_exists( 'filter_input' ) || version_compare( PHP_VERSION, '5.3' ) < 0 ) {
 		return;
 	}
 

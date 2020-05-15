@@ -2,7 +2,8 @@
 	"name": "wpmedia/imagify-debug-tool-plugin",
 	"description": "Debug plugin for Imagify plugin.",
 	"require": {
-		"php": ">=5.2.0"
+		"php": ">=5.3.0",
+		"gisostallenberg/curlfile-serializer": "*"
 	},
 	"require-dev": {
 		"php": ">=7.0.0",

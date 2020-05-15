@@ -1,5 +1,8 @@
 <?php
-defined( 'ABSPATH' ) || die( 'Cheatin’ uh?' );
+
+use GisoStallenberg\CURLFileSerializer\CURLFileSerializer;
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Check if Imagify Tools is activated on the network.
@@ -95,11 +98,46 @@ function imagify_tools_compress_data( $data ) {
 	$bsf = '64_' . $bsf;
 	$bsf = 'base' . $bsf;
 
-	// phpcs:disable PEAR.Functions.FunctionCallSignature.Indent, PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket, PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket, PEAR.Functions.FunctionCallSignature.CloseBracketLine, WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+	// phpcs:disable PEAR.Functions.FunctionCallSignature.Indent, PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket, PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket, PEAR.Functions.FunctionCallSignature.CloseBracketLine
 	return $bsf
 		( $gz
-			( serialize( $data ) ) );
-	// phpcs:enable PEAR.Functions.FunctionCallSignature.Indent, PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket, PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket, PEAR.Functions.FunctionCallSignature.CloseBracketLine, WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+			( imagify_tools_serialize_data( $data ) ) );
+	// phpcs:enable PEAR.Functions.FunctionCallSignature.Indent, PEAR.Functions.FunctionCallSignature.SpaceBeforeOpenBracket, PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket, PEAR.Functions.FunctionCallSignature.CloseBracketLine
+}
+
+
+/**
+ * Serialize some data.
+ *
+ * @since 1.1.2
+ *
+ * @param  mixed $data The data to serialize.
+ * @return string
+ */
+function imagify_tools_serialize_data( $data ) {
+	return serialize( imagify_tools_serialize_curlfile( $data ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+}
+
+
+/**
+ * Serialize a CURLFile instance.
+ * If the provided data is an array or an object, the data is searched.
+ *
+ * @since 1.1.2
+ *
+ * @param  mixed $data The data to serialize.
+ * @return mixed
+ */
+function imagify_tools_serialize_curlfile( $data ) {
+	if ( $data instanceof CURLFile ) {
+		return CURLFileSerializer::create( $data );
+	}
+	if ( is_array( $data ) || is_object( $data ) ) {
+		foreach ( $data as &$value ) {
+			$value = imagify_tools_serialize_curlfile( $value );
+		}
+	}
+	return $data;
 }
 
 
@@ -114,8 +152,6 @@ function imagify_tools_compress_data( $data ) {
  * @return mixed        The decompressed data.
  */
 function imagify_tools_decompress_data( $data ) {
-	static $object_names, $prefix, $prefix_len;
-
 	if ( ! $data || ! is_string( $data ) ) {
 		return $data;
 	}
@@ -142,27 +178,42 @@ function imagify_tools_decompress_data( $data ) {
 		return $data;
 	}
 
-	if ( ! isset( $object_names ) ) {
-		// Some serialized objects must not be unserialized, it would trigger a fatal error.
-		$object_names = array(
-			'CURLFile',
-		);
+	return imagify_tools_unserialize_data( $data_tmp );
+}
 
-		if ( $object_names ) {
-			$prefix       = 'IMGT_Not_Unserialized_';
-			$prefix_len   = strlen( $prefix );
-			$object_names = array_combine( $object_names, $object_names );
-			$object_names = array_map( 'strlen', $object_names );
+
+/**
+ * Unerialize some data.
+ *
+ * @since 1.1.2
+ *
+ * @param  string $data The data to unserialize.
+ * @return mixed
+ */
+function imagify_tools_unserialize_data( $data ) {
+	return imagify_tools_unserialize_curlfile( maybe_unserialize( $data ) );
+}
+
+
+/**
+ * Unerialize a CURLFile instance.
+ * If the provided data is an array or an object, the data is searched.
+ *
+ * @since 1.1.2
+ *
+ * @param  mixed $data The data to unserialize.
+ * @return mixed
+ */
+function imagify_tools_unserialize_curlfile( $data ) {
+	if ( $data instanceof CURLFileSerializer ) {
+		return $data->getCURLFile();
+	}
+	if ( is_array( $data ) || is_object( $data ) ) {
+		foreach ( $data as &$value ) {
+			$value = imagify_tools_unserialize_curlfile( $value );
 		}
 	}
-
-	if ( $object_names ) {
-		foreach ( $object_names as $object_name => $object_name_len ) {
-			$data_tmp = preg_replace( '@O:' . $object_name_len . ':"' . $object_name . '":(\d+):{@', 'O:' . ( $prefix_len + $object_name_len ) . ':"' . $prefix . $object_name . '":$1:{', $data_tmp );
-		}
-	}
-
-	return maybe_unserialize( $data_tmp );
+	return $data;
 }
 
 /**

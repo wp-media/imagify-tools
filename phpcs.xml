@@ -9,7 +9,7 @@
 	<exclude-pattern>tests.php</exclude-pattern>
 
 	<!-- Check for cross-version support for PHP 5.2 and higher + WP 3.7 and higher. -->
-	<config name="testVersion" value="5.2-"/>
+	<config name="testVersion" value="5.3-"/>
 	<config name="minimum_supported_wp_version" value="3.7"/>
 
 	<!-- Run against the PHPCompatibility ruleset dedicated to WP. -->
