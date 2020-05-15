@@ -120,6 +120,9 @@ class Imagify_Tools {
 		}
 
 		// Load files.
+		if ( file_exists( IMAGIFY_TOOLS_PATH . 'vendor/autoload.php' ) ) {
+			require_once IMAGIFY_TOOLS_PATH . 'vendor/autoload.php';
+		}
 		include_once IMAGIFY_TOOLS_FUNCTIONS_PATH . 'compat.php';
 		include_once IMAGIFY_TOOLS_FUNCTIONS_PATH . 'common.php';
 
