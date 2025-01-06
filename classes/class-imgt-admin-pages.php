@@ -129,7 +129,7 @@ class IMGT_Admin_Pages {
 		global $submenu;
 
 		$capability   = imagify_tools_get_capacity();
-		$current_page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_STRING );
+		$current_page = filter_input( INPUT_GET, 'page' );
 
 		foreach ( self::$pages_data as $query_arg => $args ) {
 			if ( self::MAIN_PAGE_SLUG === $query_arg ) {

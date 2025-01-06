@@ -465,8 +465,6 @@ class IMGT_Admin_Model_Main {
 		$imagify_urls = array(
 			'https://imagify.io',
 			'https://app.imagify.io/api/version/',
-			'https://s2-amz-par.imagify.io/wpm.png',
-			'http://storage.imagify.io/images/index.png',
 		);
 
 		foreach ( $imagify_urls as $imagify_url ) {
